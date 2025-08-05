@@ -24,10 +24,10 @@ Ext.define('MBilling.view.sip.Form', {
     alias: 'widget.sipform',
     bodyPadding: 0,
     fieldsHideUpdateLot: ['id_user', 'defaultuser', 'secret'],
-    initComponent: function() {
+    initComponent: function () {
         var me = this;
         haveServiceMenu = false;
-        Ext.each(App.user.menu, function(item) {
+        Ext.each(App.user.menu, function (item) {
             if (item.text == "t('Services')") haveServiceMenu = true;
         });
         me.items = [{
@@ -244,86 +244,84 @@ Ext.define('MBilling.view.sip.Form', {
                     hidden: !App.user.isAdmin,
                     allowBlank: true
                 }, {
-                    name: 'context',
-                    fieldLabel: t('Context'),
-                    value: 'billing',
-                    hidden: !App.user.isAdmin,
-                    allowBlank: true
-                }, {
-                    name: 'dtmfmode',
-                    fieldLabel: t('Dtmfmode'),
-                    value: 'RFC2833',
-                    allowBlank: !App.user.isAdmin
-                }, {
-                    name: 'insecure',
-                    fieldLabel: t('Insecure'),
-                    value: 'no',
-                    allowBlank: true
-                }, {
-                    name: 'deny',
-                    fieldLabel: t('Deny'),
-                    allowBlank: true,
-                    hidden: !App.user.isAdmin
-                }, {
-                    name: 'permit',
-                    fieldLabel: t('Permit'),
-                    allowBlank: true,
-                    hidden: !App.user.isAdmin
-                }, {
-                    name: 'type',
-                    fieldLabel: t('Type'),
-                    value: 'friend',
-                    allowBlank: !App.user.isAdmin
-                }, {
-                    xtype: 'noyesstringcombo',
-                    name: 'allowtransfer',
-                    fieldLabel: t('Allowtransfer'),
-                    value: 'no',
-                    allowBlank: !App.user.isAdmin
-                }, {
-                    xtype: 'noyescombo',
-                    name: 'ringfalse',
-                    fieldLabel: t('Fake Ring'),
-                    value: '0',
-                    allowBlank: !App.user.isAdmin
-                }, {
-                    xtype: 'numberfield',
-                    name: 'calllimit',
-                    fieldLabel: t('Call limit'),
-                    value: '0',
-                    allowBlank: !App.user.isAdmin
-                }, {
-                    name: 'mohsuggest',
-                    fieldLabel: t('MOH'),
-                    allowBlank: true,
-                    hidden: !App.user.isAdmin
-                }, {
-                    name: 'url_events',
-                    fieldLabel: t('URL events notify'),
-                    hidden: !App.user.isAdmin || !window.events === true,
-                    allowBlank: true
-                }, {
-                    name: 'addparameter',
-                    fieldLabel: t('Addparameter'),
-                    allowBlank: true,
-                    hidden: !App.user.isAdmin,
-                    emptyText: t('Parameterdial')
-                }, {
-                    xtype: 'combobox',
-                    name: 'amd',
-                    fieldLabel: t('AMD'),
-                    store: [
-                        ['0', t('Disable')],
-                        ['1', t('Before answer')],
-                        ['2', t('After answer')],
-                        ['3', t('Both')]
-                    ],
-                    forceSelection: true,
-                    editable: false,
-                    value: '0',
-                    allowBlank: true,
-                    hidden: !window.dma || !window.dialC
-                }]
+                        name: 'context',
+                        fieldLabel: t('Context'),
+                        value: 'billing',
+                        hidden: !App.user.isAdmin,
+                        allowBlank: true
+                    }, {
+                        name: 'dtmfmode',
+                        fieldLabel: t('Dtmfmode'),
+                        value: 'RFC2833',
+                        allowBlank: !App.user.isAdmin
+                    }, {
+                        name: 'insecure',
+                        fieldLabel: t('Insecure'),
+                        value: 'no',
+                        allowBlank: true
+                    }, {
+                        name: 'deny',
+                        fieldLabel: t('Deny'),
+                        allowBlank: true,
+                        hidden: !App.user.isAdmin
+                    }, {
+                        name: 'permit',
+                        fieldLabel: t('Permit'),
+                        allowBlank: true,
+                        hidden: !App.user.isAdmin
+                    }, {
+                        name: 'type',
+                        fieldLabel: t('Type'),
+                        value: 'friend',
+                        allowBlank: !App.user.isAdmin
+                    }, {
+                        xtype: 'noyesstringcombo',
+                        name: 'allowtransfer',
+                        fieldLabel: t('Allowtransfer'),
+                        value: 'no',
+                        allowBlank: !App.user.isAdmin
+                    }, {
+                        xtype: 'noyescombo',
+                        name: 'ringfalse',
+                        fieldLabel: t('Fake Ring'),
+                        value: '0',
+                        allowBlank: !App.user.isAdmin
+                    }, {
+                        xtype: 'numberfield',
+                        name: 'calllimit',
+                        fieldLabel: t('Call limit'),
+                        value: '0',
+                        allowBlank: !App.user.isAdmin
+                    }, {
+                        name: 'mohsuggest',
+                        fieldLabel: t('MOH'),
+                        allowBlank: true,
+                        hidden: !App.user.isAdmin
+                    }, {
+                        name: 'url_events',
+                        fieldLabel: t('URL events notify'),
+                        hidden: !App.user.isAdmin || !window.events === true,
+                        allowBlank: true
+                    }, {
+                        name: 'addparameter',
+                        fieldLabel: t('Addparameter'),
+                        allowBlank: true,
+                        hidden: !App.user.isAdmin,
+                        emptyText: t('Parameterdial')
+                    }, {
+                        xtype: 'combobox',
+                        name: 'amd',
+                        fieldLabel: t('AMD'),
+                        store: [
+                            ['0', t('Disable')],
+                            ['1', t('Before answer')]
+                        ],
+                        forceSelection: true,
+                        editable: false,
+                        value: '0',
+                        allowBlank: true,
+                        hidden: !window.dialC
+                    }]
             }, {
                 title: t('Forward'),
                 itemId: 'option',

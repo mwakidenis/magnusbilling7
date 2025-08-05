@@ -41,10 +41,12 @@ class SipController extends Controller
 
     public $fieldsInvisibleClient = [
         'id_trunk_group',
+        'amd'
     ];
 
     public $fieldsInvisibleAgent = [
         'id_trunk_group',
+        'amd'
     ];
 
     public $fieldsNotUpdateClient = [
