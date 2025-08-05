@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -21,20 +22,21 @@ class DidCheckCommand extends ConsoleCommand
 {
     public function run($args)
     {
-        $modelDidUse = DidUse::model()->findAll([
-            'condition' => '(releasedate IS NULL OR releasedate < :key) AND status = 1',
-            'with'      => [
-                'idDid' => [
-                    'condition' => "idDid.billingtype <> 3 AND idDid.fixrate > 0",
+        $modelDidUse = DidUse::model()->findAll(
+            [
+                'condition' => '(releasedate IS NULL OR releasedate < :key) AND status = 1',
+                'with'      => [
+                    'idDid' => [
+                        'condition' => "idDid.billingtype <> 3 AND idDid.fixrate > 0",
+                    ],
                 ],
-            ],
-            'params'    => [
-                ':key' => '1984-01-01 00:00:00',
-            ],
-        ]
+                'params'    => [
+                    ':key' => '1984-01-01 00:00:00',
+                ],
+            ]
         );
 
-        if ( ! isset($modelDidUse[0])) {
+        if (! isset($modelDidUse[0])) {
             exit($this->debug >= 3 ? MagnusLog::writeLog(LOGFILE, ' line:' . __LINE__ . " NO DID IN USE ") : null);
             exit;
         }
@@ -44,7 +46,7 @@ class DidCheckCommand extends ConsoleCommand
 
         foreach ($modelDidUse as $didUse) {
 
-            if ( ! isset($didUse->idUser->id)) {
+            if (! isset($didUse->idUser->id)) {
                 continue;
             }
 
@@ -59,8 +61,14 @@ class DidCheckCommand extends ConsoleCommand
             $days_remaining = $interval->days;
 
             $diff_reservation_daytopay = (strtotime($didUse->reservationdate)) - (intval($daytopay) * $oneday);
-            $timestamp_datetopay       = mktime(date('H', $diff_reservation_daytopay), date("i", $diff_reservation_daytopay), date("s", $diff_reservation_daytopay),
-                date("m", $diff_reservation_daytopay) + $didUse->month_payed, date("d", $diff_reservation_daytopay), date("Y", $diff_reservation_daytopay));
+            $timestamp_datetopay       = mktime(
+                date('H', $diff_reservation_daytopay),
+                date("i", $diff_reservation_daytopay),
+                date("s", $diff_reservation_daytopay),
+                date("m", $diff_reservation_daytopay) + $didUse->month_payed,
+                date("d", $diff_reservation_daytopay),
+                date("Y", $diff_reservation_daytopay)
+            );
 
             $day_remaining = time() - $timestamp_datetopay;
 
@@ -231,7 +239,6 @@ class DidCheckCommand extends ConsoleCommand
                         try {
                             $modelDidHistory->save();
                         } catch (Exception $e) {
-
                         }
 
                         if ($id_agent > 1) {
@@ -255,7 +262,5 @@ class DidCheckCommand extends ConsoleCommand
             }
         }
     }
-}
-{
-
+} {
 }

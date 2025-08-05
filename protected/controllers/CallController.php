@@ -435,6 +435,9 @@ class CallController extends Controller
         }
         $columns = json_decode($_GET['columns'], true);
 
+
+
+
         if (json_last_error() !== 0) {
             exit;
         }
@@ -449,13 +452,17 @@ class CallController extends Controller
         $this->applyFilterToLimitedAdmin();
         $nameFileCsv = $this->nameFileReport . time();
         $this->convertRelationFilter();
-        $header = '';
+        $header = [];
         foreach ($columns as $key => $value) {
+
+            if ($value['dataIndex'] == 't.id' && $value['header'] == '') {
+                $value['header'] = 'ID';
+            }
             if (strlen($value['header']) > 40) {
                 MagnusLog::insertLOG('EDIT', $id_user, $_SERVER['REMOTE_ADDR'], 'CDR export columns have more than 40 char.' . print_r($columns, true));
                 exit;
             }
-            $header .= "'" . ($value['header']) . "',";
+            $header[] =  $value['header'];
         }
 
         if (preg_match('/echo|system|exec|touch|pass|cd |rm |curl|wget|assets|resources|mbilling|protected/', $header)) {
@@ -471,16 +478,8 @@ class CallController extends Controller
         }
 
         $fileName = 'cdr_' . time();
-
-        file_put_contents('/var/www/html/mbilling/tmp/' . $fileName . '.csv', substr($header, 0, -1));
-
-        $this->filter = preg_replace('/:clfby|:agfby/', Yii::app()->session['id_user'], $this->filter);
-        $sql          = "SELECT " . $this->getColumnsFromReport($columns) . " FROM " . $this->abstractModel->tableName() . " t $this->join WHERE $this->filter";
-
         $output = fopen('php://output', 'w');
-
-        fputcsv($output, [substr($header, 0, -1)], ';');
-
+        fputcsv($output, $header, ',');
         $limit  = 10000;
         $offset = 0;
 
@@ -504,7 +503,7 @@ class CallController extends Controller
 
             if (count($rows) > 0) {
                 foreach ($rows as $row) {
-                    fputcsv($output, $row, ';');
+                    fputcsv($output, $row, ',');
                 }
                 $offset += $limit;
             } else {

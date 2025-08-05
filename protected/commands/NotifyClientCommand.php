@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -46,9 +47,14 @@ class NotifyClientCommand extends ConsoleCommand
                 $user->save();
             }
 
+            $idUserType = $user->idGroup->idUserType->id;
+            if ($idUserType != 3) {
+                continue;
+            }
+
             $modelSmtp = Smtps::model()->find('id_user = :key', [':key' => $user->id_user]);
 
-            if ( ! isset($modelSmtp->id)) {
+            if (! isset($modelSmtp->id)) {
                 continue;
             }
 
@@ -64,14 +70,12 @@ class NotifyClientCommand extends ConsoleCommand
                     try {
                         $mail->send($this->config['global']['admin_email']);
                     } catch (Exception $e) {
-
                     }
                 }
 
                 if ($this->debug >= 1) {
                     echo ("Notifique email" . $user->email . "\n");
                 }
-
             }
 
             $user->last_notification = date('Y-m-d H:i:s');
