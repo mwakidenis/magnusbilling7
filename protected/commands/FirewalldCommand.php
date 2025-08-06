@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -33,17 +34,24 @@ class FirewalldCommand extends ConsoleCommand
 
                 foreach ($result as $key => $ip) {
 
-                    $sql = "UPDATE pkg_ip_list_entries SET status = 0 WHERE id = " . $ip['id'];
-                    Yii::app()->db->createCommand($sql)->execute();
 
-                    if ($ip['ip_list_id'] == 'Whitelist') {
-                        shell_exec('sudo firewall-cmd --zone=public --add-rich-rule=" rule family=\"ipv4\" source address=\"' . $ip['ip_address'] . '\" port protocol=\"tcp\" port=\"443\" accept" --permanent');
-                        shell_exec('sudo firewall-cmd --zone=public --add-rich-rule=" rule family=\"ipv4\" source address=\"' . $ip['ip_address'] . '\" port protocol=\"tcp\" port=\"80\" accept" --permanent');
-                    } else if ($ip['ip_list_id'] == 'Blacklist') {
-                        shell_exec('sudo firewall-cmd --zone=public --remove-rich-rule=" rule family=\"ipv4\" source address=\"' . $ip['ip_address'] . '\" port protocol=\"tcp\" port=\"443\" accept" --permanent');
-                        shell_exec('sudo firewall-cmd --zone=public --remove-rich-rule=" rule family=\"ipv4\" source address=\"' . $ip['ip_address'] . '\" port protocol=\"tcp\" port=\"80\" accept" --permanent');
+                    $sql = "UPDATE pkg_ip_list_entries SET status = 0 WHERE id = :key";
+                    $command = Yii::app()->db->createCommand($sql);
+                    $command->bindValue(':key', $ip['id'], PDO::PARAM_INT);
+                    $command->execute();
+
+                    if (filter_var($ip['ip_address'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                        $addr = escapeshellarg($ip['ip_address']);
+                        if ($ip['ip_list_id'] == 'Whitelist') {
+                            shell_exec('sudo firewall-cmd --zone=public --add-rich-rule=" rule family=\"ipv4\" source address=\"' . $addr . '\" port protocol=\"tcp\" port=\"443\" accept" --permanent');
+                            shell_exec('sudo firewall-cmd --zone=public --add-rich-rule=" rule family=\"ipv4\" source address=\"' . $addr . '\" port protocol=\"tcp\" port=\"80\" accept" --permanent');
+                        } else if ($ip['ip_list_id'] == 'Blacklist') {
+                            shell_exec('sudo firewall-cmd --zone=public --remove-rich-rule=" rule family=\"ipv4\" source address=\"' . $addr . '\" port protocol=\"tcp\" port=\"443\" accept" --permanent');
+                            shell_exec('sudo firewall-cmd --zone=public --remove-rich-rule=" rule family=\"ipv4\" source address=\"' . $addr . '\" port protocol=\"tcp\" port=\"80\" accept" --permanent');
+                        }
+
+                        shell_exec('firewall-cmd --reload');
                     }
-                    shell_exec('firewall-cmd --reload');
                 }
             } else {
                 sleep(1);

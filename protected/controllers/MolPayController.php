@@ -5,21 +5,6 @@ class MolPayController extends Controller
     public function actionIndex()
     {
 
-        /*$_POST = array(
-        'skey'       => "bdaa623a10bd92ca393c069d81170f7b",
-        'tranID'     => '22771468',
-        'domain'     => 'teztelcom',
-        'status'     => '00',
-        'amount'     => '2.00',
-        'currency'   => 'RM',
-        'paydate'    => '2017-10-16 14:39:44',
-        'orderid'    => '20171016043931-281060287519',
-        'appcode'    => '',
-        'error_code' => '',
-        'error_desc' => '',
-        'channel'    => 'FPX',
-        );
-         */
         Yii::log(print_r($_REQUEST, true), 'error');
         $filter = "payment_method = 'molpay'";
         $params = array();
@@ -94,13 +79,11 @@ class MolPayController extends Controller
                     echo "<p align='center'> <font color=red font face='verdana' size='5pt'>You may close this window and get back to your account.</font> </p>";
                     echo "<p align='center'> <font color=red font face='verdana' size='5pt'>Thank You</font> </p>";
                 }
-
             } else {
                 // failure action
                 echo 'Error';
                 exit;
             }
-
         } else {
             echo '<h3>thanks.</h3>';
         }

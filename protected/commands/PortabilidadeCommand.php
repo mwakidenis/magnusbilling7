@@ -20,6 +20,9 @@
  */
 class PortabilidadeCommand extends CConsoleCommand
 {
+
+    private $validUser;
+    private $validPass;
     public function run($args)
     {
 
@@ -29,20 +32,28 @@ class PortabilidadeCommand extends CConsoleCommand
             exit;
         }
 
-        shell_exec('mkdir -p /usr/src/ChipCerto');
-        shell_exec('rm -rf /usr/src/ChipCerto/*');
-        shell_exec('cd /usr/src/ChipCerto && wget ftp://' . $args['0'] . ':' . $args['1'] . '@ftp.portabilidadecelular.com:2157/portabilidade.tar.bz2 && tar -jxvf portabilidade.tar.bz2');
-        shell_exec('cd /usr/src/ChipCerto && wget ftp://' . $args['0'] . ':' . $args['1'] . '@ftp.portabilidadecelular.com:2157/prefix_anatel.csv');
+        $this->validUser = preg_match('/^[A-Za-z0-9._-]+$/', $args['0']);
+        $this->validPass = preg_match('/^[A-Za-z0-9._-]+$/', $args['1']);
 
-        if (! file_exists("/usr/src/ChipCerto/prefix_anatel.csv")) {
-            exit;
-        }
+        if ($this->validUser && $this->validPass) {
 
-        if (filesize("/usr/src/ChipCerto/prefix_anatel.csv") < '100') {
-            exit;
-        }
 
-        $sql = "CREATE TABLE IF NOT EXISTS pkg_portabilidade_prefix (
+
+
+            shell_exec('mkdir -p /usr/src/ChipCerto');
+            shell_exec('rm -rf /usr/src/ChipCerto/*');
+            shell_exec('cd /usr/src/ChipCerto && wget ftp://' . escapeshellarg($this->validUser) . ':' . escapeshellarg($this->validPass) . '@ftp.portabilidadecelular.com:2157/portabilidade.tar.bz2 && tar -jxvf portabilidade.tar.bz2');
+            shell_exec('cd /usr/src/ChipCerto && wget ftp://' . escapeshellarg($this->validUser) . ':' . escapeshellarg($this->validPass) . '@ftp.portabilidadecelular.com:2157/prefix_anatel.csv');
+
+            if (! file_exists("/usr/src/ChipCerto/prefix_anatel.csv")) {
+                exit;
+            }
+
+            if (filesize("/usr/src/ChipCerto/prefix_anatel.csv") < '100') {
+                exit;
+            }
+
+            $sql = "CREATE TABLE IF NOT EXISTS pkg_portabilidade_prefix (
           `id` int(11) NOT NULL auto_increment,
           `number` bigint(15) NOT NULL,
           `company` int(5) NOT NULL,
@@ -50,23 +61,23 @@ class PortabilidadeCommand extends CConsoleCommand
           KEY `number` (`number`),
           KEY `company` (`company`)
         ) ENGINE=MyISAM  DEFAULT CHARSET=latin1;";
-        Yii::app()->db->createCommand($sql)->execute();
+            Yii::app()->db->createCommand($sql)->execute();
 
-        $sql = "TRUNCATE pkg_portabilidade_prefix";
-        Yii::app()->db->createCommand($sql)->execute();
+            $sql = "TRUNCATE pkg_portabilidade_prefix";
+            Yii::app()->db->createCommand($sql)->execute();
 
-        $sql = "LOAD DATA LOCAL INFILE '/usr/src/ChipCerto/prefix_anatel.csv' INTO TABLE pkg_portabilidade_prefix FIELDS TERMINATED BY ';'  LINES TERMINATED BY '\n'  (number, company);";
-        Yii::app()->db->createCommand($sql)->execute();
+            $sql = "LOAD DATA LOCAL INFILE '/usr/src/ChipCerto/prefix_anatel.csv' INTO TABLE pkg_portabilidade_prefix FIELDS TERMINATED BY ';'  LINES TERMINATED BY '\n'  (number, company);";
+            Yii::app()->db->createCommand($sql)->execute();
 
-        if (! file_exists("/usr/src/ChipCerto/exporta.csv")) {
-            exit;
-        }
+            if (! file_exists("/usr/src/ChipCerto/exporta.csv")) {
+                exit;
+            }
 
-        if (filesize("/usr/src/ChipCerto/exporta.csv") < '10000') {
-            exit;
-        }
+            if (filesize("/usr/src/ChipCerto/exporta.csv") < '10000') {
+                exit;
+            }
 
-        $sql = "CREATE TABLE IF NOT EXISTS pkg_portabilidade (
+            $sql = "CREATE TABLE IF NOT EXISTS pkg_portabilidade (
           `id` int(11) NOT NULL auto_increment,
           `number` bigint(15) NOT NULL,
           `company` int(5) NOT NULL,
@@ -75,32 +86,28 @@ class PortabilidadeCommand extends CConsoleCommand
           KEY `number` (`number`),
           KEY `company` (`company`)
         ) ENGINE=MyISAM  DEFAULT CHARSET=latin1;";
-        Yii::app()->db->createCommand($sql)->execute();
+            Yii::app()->db->createCommand($sql)->execute();
 
-        $sql = "TRUNCATE pkg_portabilidade";
-        Yii::app()->db->createCommand($sql)->execute();
+            $sql = "TRUNCATE pkg_portabilidade";
+            Yii::app()->db->createCommand($sql)->execute();
 
-        $sql = "LOAD DATA LOCAL INFILE '/usr/src/ChipCerto/exporta.csv' INTO TABLE pkg_portabilidade FIELDS TERMINATED BY ';'  LINES TERMINATED BY '\n'  (id, number, company, date);";
-        Yii::app()->db->createCommand($sql)->execute();
+            $sql = "LOAD DATA LOCAL INFILE '/usr/src/ChipCerto/exporta.csv' INTO TABLE pkg_portabilidade FIELDS TERMINATED BY ';'  LINES TERMINATED BY '\n'  (id, number, company, date);";
+            Yii::app()->db->createCommand($sql)->execute();
+        } else {
+            exit('Usuário ou senha inválidos');
+        }
     }
 
     public function checkDID($args)
     {
 
-        $arrContextOptions = [
-            "ssl" => [
-                "verify_peer"      => false,
-                "verify_peer_name" => false,
-            ],
-        ];
-
         $modelDid = Did::model()->findAll();
 
         foreach ($modelDid as $key => $did) {
 
-            $url = "https://consultas.portabilidadecelular.com/painel/consulta_numero.php?user=" . $args[0] . "&pass=" . $args[1] . "&seache_number=" . $did->did . "&completo";
+            $url = "https://consultas.portabilidadecelular.com/painel/consulta_numero.php?user=" . escapeshellarg($this->validUser)  . "&pass=" . escapeshellarg($this->validPass) . "&seache_number=" . $did->did . "&completo";
 
-            if (! $result = @file_get_contents($url, false, stream_context_create($arrContextOptions))) {
+            if (! $result = @file_get_contents($url, false)) {
 
                 $did->country = 'Operadora não identificada';
             } else {
