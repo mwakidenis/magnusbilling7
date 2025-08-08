@@ -107,7 +107,9 @@ class DidCheckCommand extends ConsoleCommand
                                 if ($didUse->idUser->email_did == 1) {
                                     $mail->send();
                                 }
-                                $sendAdmin = $this->config['global']['admin_received_email'] == 1 ? $mail->send($this->config['global']['admin_email']) : null;
+                                if ($this->config['global']['admin_received_email'] == 1) {
+                                    $mail->send($this->config['global']['admin_email']);
+                                }
                             } else {
                                 $description = Yii::t('zii', 'Monthly payment DID') . ' ' . $didUse->idDid->did;
 
@@ -131,7 +133,9 @@ class DidCheckCommand extends ConsoleCommand
                                 if ($didUse->idUser->email_did == 1) {
                                     $mail->send();
                                 }
-                                $sendAdmin = $this->config['global']['admin_received_email'] == 1 ? $mail->send($this->config['global']['admin_email']) : null;
+                                if ($this->config['global']['admin_received_email'] == 1) {
+                                    $mail->send($this->config['global']['admin_email']);
+                                }
                             }
                         } else {
                             //just notify the client about the due date
@@ -168,7 +172,9 @@ class DidCheckCommand extends ConsoleCommand
                             $mail->send();
                         }
 
-                        $sendAdmin = $this->config['global']['admin_received_email'] == 1 ? $mail->send($this->config['global']['admin_email']) : null;
+                        if ($this->config['global']['admin_received_email'] == 1) {
+                            $mail->send($this->config['global']['admin_email']);
+                        }
                     }
                 } else {
                     if ($user_credit >= $didUse->idDid->fixrate) {
@@ -190,7 +196,9 @@ class DidCheckCommand extends ConsoleCommand
                             if ($didUse->idUser->email_did == 1) {
                                 $mail->send();
                             }
-                            $sendAdmin = $this->config['global']['admin_received_email'] == 1 ? $mail->send($this->config['global']['admin_email']) : null;
+                            if ($this->config['global']['admin_received_email'] == 1) {
+                                $mail->send($this->config['global']['admin_email']);
+                            }
                         } else {
                             $description = Yii::t('zii', 'Monthly payment DID') . ' ' . $didUse->idDid->did;
 
@@ -214,7 +222,9 @@ class DidCheckCommand extends ConsoleCommand
                             if ($didUse->idUser->email_did == 1) {
                                 $mail->send();
                             }
-                            $sendAdmin = $this->config['global']['admin_received_email'] == 1 ? $mail->send($this->config['global']['admin_email']) : null;
+                            if ($this->config['global']['admin_received_email'] == 1) {
+                                $mail->send($this->config['global']['admin_email']);
+                            }
                         }
                     } else {
                         $log                 = $this->debug >= 1 ? MagnusLog::writeLog(LOGFILE, ' line:' . __LINE__ . " RELEASE THE DID  " . $didUse->idDid->did . " ON THE USER  " . $didUse->idUser->username . " ") : null;
@@ -253,8 +263,9 @@ class DidCheckCommand extends ConsoleCommand
                         if ($didUse->idUser->email_did == 1) {
                             $mail->send();
                         }
-                        $mail->send($this->config['global']['admin_email']);
-                        $sendAdmin = $this->config['global']['admin_received_email'] == 1 ? $mail->send($this->config['global']['admin_email']) : null;
+                        if ($this->config['global']['admin_received_email'] == 1) {
+                            $mail->send($this->config['global']['admin_email']);
+                        }
                     }
                 }
             } else {

@@ -88,6 +88,10 @@ echo 'Options -Indexes
 Order Deny,Allow
 Deny from all
 ' > /var/www/html/mbilling/assets/.htaccess
+echo 'Options -Indexes
+Order Deny,Allow
+Deny from all
+' > /var/www/html/mbilling/lib/.htaccess
 chmod +x /var/www/html/mbilling/resources/asterisk/mbilling.php
 sed -i "s/AllowOverride None/AllowOverride All/" ${HTTP_CONFIG}
 systemctl reload ${SERVICE}
