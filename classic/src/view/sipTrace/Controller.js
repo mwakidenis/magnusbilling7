@@ -21,7 +21,7 @@
 Ext.define('MBilling.view.sipTrace.Controller', {
     extend: 'Ext.ux.app.ViewController',
     alias: 'controller.siptrace',
-    onNewFilter: function(btn) {
+    onNewFilter: function (btn) {
         var me = this,
             module = me.getView();
         Ext.widget('siptracefilter', {
@@ -29,14 +29,14 @@ Ext.define('MBilling.view.sipTrace.Controller', {
             list: me.list
         });
     },
-    onDeleteLog: function(btn) {
+    onDeleteLog: function (btn) {
         var me = this;
-        Ext.Msg.confirm(me.titleConfirmation, t('Confirm delete all log file?'), function(btn) {
+        Ext.Msg.confirm(me.titleConfirmation, t('Confirm delete all log file?'), function (btn) {
             if (btn === 'yes') {
                 Ext.Ajax.request({
                     url: 'index.php/sipTrace/destroy',
                     scope: me,
-                    success: function(response) {
+                    success: function (response) {
                         Ext.ux.Alert.alert(me.titleSuccess, t('Success: The SipTrace file was deleted'), 'success');
                         me.store.load();
                     }
@@ -44,27 +44,54 @@ Ext.define('MBilling.view.sipTrace.Controller', {
             }
         });
     },
-    onClearAll: function(btn) {
+    onClearAll: function (btn) {
         var me = this;
         Ext.Ajax.request({
             url: 'index.php/sipTrace/clearAll',
             scope: me,
-            success: function(response) {
+            success: function (response) {
                 Ext.ux.Alert.alert(me.titleSuccess, t('Success'), 'success');
                 me.store.load();
             }
         });
     },
-    onExportPcap: function(btn) {
+    onExportPcap: function (btn) {
         var me = this;
         window.open('index.php/sipTrace/export');
     },
-    onDetails: function(btn) {
+    onDetails: function (btn) {
         var me = this,
             callids = [];
-        Ext.each(me.list.getSelectionModel().getSelection(), function(record) {
+
+        Ext.each(me.list.getSelectionModel().getSelection(), function (record) {
             callids.push(record.get('callid'));
         });
-        window.open('index.php/sipTrace/details?callid=' + Ext.encode(callids));
+
+        if (callids.length === 0) {
+            Ext.ux.Alert.alert(me.titleSuccess, t('No records selected.'), 'error');
+            return;
+        }
+
+        if (callids.length > 3) {
+            Ext.ux.Alert.alert(me.titleSuccess, t('Select a maximum of 3 records to view.'), 'error');
+            return;
+        }
+
+        Ext.create('Ext.window.Window', {
+            title: t('SIPTRACE Details'),
+            width: Ext.Element.getViewportWidth() * 0.9,
+            height: Ext.Element.getViewportHeight() * 0.9,
+            modal: true,
+            layout: 'fit',
+            items: [{
+                xtype: 'component',
+                autoEl: {
+                    tag: 'iframe',
+                    src: 'index.php/sipTrace/details?callid=' + encodeURIComponent(Ext.encode(callids)),
+                    style: 'border: none; width: 100%; height: 100%;'
+                }
+            }]
+        }).show();
     }
+
 });

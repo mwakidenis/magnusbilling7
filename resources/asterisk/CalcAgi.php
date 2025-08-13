@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -67,7 +68,7 @@ class CalcAgi
 
     public function calculateAllTimeout(&$MAGNUS, $agi)
     {
-        if ( ! is_array($this->tariffObj) || count($this->tariffObj) == 0) {
+        if (! is_array($this->tariffObj) || count($this->tariffObj) == 0) {
             return false;
         }
 
@@ -185,13 +186,13 @@ class CalcAgi
 
         $TIMEOUT              = 0;
         $answeredtime_1st_leg = 0;
-        if ($rateinitial <= 0) /*Se o preÃ§o for 0, entao retornar o timeout em 3600 s*/{
+        if ($rateinitial <= 0) /*Se o preÃ§o for 0, entao retornar o timeout em 3600 s*/ {
             $this->tariffObj[0]['timeout'] = $MAGNUS->config['global']['max_call_duration'];
             $TIMEOUT                       = $MAGNUS->config['global']['max_call_duration'];
             return $TIMEOUT;
         }
 
-        if ($this->freecall[0]) /*usado para planos gratis*/{
+        if ($this->freecall[0]) /*usado para planos gratis*/ {
             $this->tariffObj[0]['timeout']                     = $MAGNUS->config['global']['max_call_duration'];
             $TIMEOUT                                           = $MAGNUS->config['global']['max_call_duration'];
             $this->tariffObj[0]['freetime_include_in_timeout'] = $MAGNUS->config['global']['max_call_duration'];
@@ -348,7 +349,6 @@ class CalcAgi
                 $sql    = "INSERT INTO pkg_offer_cdr ($fields) VALUES ($values)";
                 $agi->verbose($sql, 25);
                 $agi->exec($sql);
-
             }
         } else {
             $sessiontime = 0;
@@ -404,7 +404,6 @@ class CalcAgi
                 }
 
                 $sessiontime = $calculaminutos * $billingblock;
-
             } elseif ($sessiontime < '1') {
                 $sessiontime = 0;
             } else {
@@ -417,7 +416,6 @@ class CalcAgi
             if (substr($MAGNUS->destination, 0, 4) == '1111') {
                 $MAGNUS->destination = str_replace(substr($MAGNUS->destination, 0, 7), "", $MAGNUS->destination);
             }
-
         }
         $cost += $MAGNUS->callingcardConnection;
 
@@ -427,7 +425,7 @@ class CalcAgi
 
             if ($this->usedtrunk > 0) {
                 $sql = "SELECT * FROM pkg_rate_provider t  JOIN pkg_prefix p ON t.id_prefix = p.id WHERE " .
-                "id_provider = " . $this->id_provider . " AND " . $MAGNUS->prefixclause .
+                    "id_provider = " . $this->id_provider . " AND " . $MAGNUS->prefixclause .
                     "ORDER BY LENGTH( prefix ) DESC LIMIT 1";
                 $agi->verbose($sql, 25);
                 $modelRateProvider = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
@@ -457,7 +455,6 @@ class CalcAgi
                         }
                         $this->buycost += ($buyratecallduration / 60) * $buyrate;
                     }
-
                 }
             }
 
@@ -466,7 +463,7 @@ class CalcAgi
             $MAGNUS->credit = $MAGNUS->credit - $cost;
             /*CALULATION CUSTO AND SELL RESELLER */
 
-            if ( ! is_null($MAGNUS->id_agent) && $MAGNUS->id_agent > 1) {
+            if (! is_null($MAGNUS->id_agent) && $MAGNUS->id_agent > 1) {
                 $agi->verbose('$MAGNUS->id_agent' . $MAGNUS->id_agent . ' ' . $MAGNUS->destination . ' - ' .
                     $calldestinationPortabilidade . ' - ' . $this->real_answeredtime . ' - ' . $cost, 1);
 
@@ -478,9 +475,7 @@ class CalcAgi
                 } else {
                     $this->agent_bill = $this->updateSystemAgent($agi, $MAGNUS, $calldestinationPortabilidade, $MAGNUS->round_precision(abs($cost)), $sessiontime);
                 }
-
             }
-
         }
         $this->callShop($agi, $MAGNUS, $sessiontime, $id_prefix, $cost);
 
@@ -493,9 +488,12 @@ class CalcAgi
             $agi->verbose('DidDuration = ' . $didDuration);
             $did_sell_price = $this->didAgi->selling_rate_1;
 
-            $did_sell_price = $MAGNUS->roudRatePrice($didDuration, $did_sell_price,
+            $did_sell_price = $MAGNUS->roudRatePrice(
+                $didDuration,
+                $did_sell_price,
                 $this->didAgi->initblock,
-                $this->didAgi->increment);
+                $this->didAgi->increment
+            );
 
             $agi->verbose('did_sell_price ' . $did_sell_price);
 
@@ -515,7 +513,6 @@ class CalcAgi
             $this->buycost          = 0;
             $this->id_prefix        = $id_prefix;
             $this->saveCDR($agi, $MAGNUS);
-
         }
 
         if ($terminatecauseid == 1) {
@@ -536,19 +533,22 @@ class CalcAgi
         $this->sipiax           = $calltype;
         $this->id_prefix        = $id_prefix;
         $this->saveCDR($agi, $MAGNUS);
-
     }
 
     public function updateSystemAgent($agi, $MAGNUS, $calledstation, $cost, $sessiontime)
     {
 
-        if ( ! isset($MAGNUS->modelRateAgent[0]['rateinitial'])) {
+        if (! isset($MAGNUS->modelRateAgent[0]['rateinitial'])) {
             $agi->verbose('NOT FOUND AGENT TARRIF, USE AGENT COST PRICE');
             $cost_customer = $cost;
         } else {
             $agi->verbose('Found agent sell price ' . print_r($MAGNUS->modelRateAgent[0], true) . '-  ' . $sessiontime, 25);
-            $cost_customer = $MAGNUS->roudRatePrice($sessiontime, $MAGNUS->modelRateAgent[0]['rateinitial'],
-                $MAGNUS->modelRateAgent[0]['initblock'], $MAGNUS->modelRateAgent[0]['billingblock']);
+            $cost_customer = $MAGNUS->roudRatePrice(
+                $sessiontime,
+                $MAGNUS->modelRateAgent[0]['rateinitial'],
+                $MAGNUS->modelRateAgent[0]['initblock'],
+                $MAGNUS->modelRateAgent[0]['billingblock']
+            );
             $agi->verbose('$cost_customer=' . $cost_customer);
         }
 
@@ -568,27 +568,37 @@ class CalcAgi
 
     public function sendCall($agi, $destination, &$MAGNUS, $typecall = 0)
     {
-        if (substr("$destination", 0, 4) == 1111) /*Retira o techprefix de numeros portados*/{
+        if (substr("$destination", 0, 4) == 1111) /*Retira o techprefix de numeros portados*/ {
             $destination = str_replace(substr($destination, 0, 7), "", $destination);
         }
         $old_destination = $destination;
 
-        if ($this->tariffObj[0]['trunk_group_type'] == 1) {
-            $sql = "SELECT * FROM pkg_trunk_group_trunk WHERE id_trunk_group = " . $this->tariffObj[0]['id_trunk_group'] . " ORDER BY id ASC";
-        } else if ($this->tariffObj[0]['trunk_group_type'] == 2) {
-            $sql = "SELECT * FROM pkg_trunk_group_trunk WHERE id_trunk_group = " . $this->tariffObj[0]['id_trunk_group'] . " ORDER BY RAND() ";
-
-        } else if ($this->tariffObj[0]['trunk_group_type'] == 3) {
-            $sql = "SELECT *, (SELECT buyrate FROM pkg_rate_provider WHERE id_provider = tr.id_provider AND id_prefix = " . $this->tariffObj[0]['id_prefix'] . " LIMIT 1) AS buyrate  FROM pkg_trunk_group_trunk t  JOIN pkg_trunk tr ON t.id_trunk = tr.id WHERE id_trunk_group = " . $this->tariffObj[0]['id_trunk_group'] . " ORDER BY buyrate IS NULL , buyrate ";
-        }
+        //check if the callerid used is a DID and the DID have a specific trunk on description
+        $sql = "SELECT * FROM pkg_did WHERE did = '" . $MAGNUS->CallerID . "' AND description != ''";
         $agi->verbose($sql, 25);
-        $modelTrunks = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
+        $modelDID = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
 
-        if ( ! isset($modelTrunks[0]->id)) {
+        if (isset($modelDID->id)) {
+            $sql = "SELECT id, id AS id_trunk FROM pkg_trunk WHERE trunkcode = '" . $modelDID->description . "'";
+            $agi->verbose($sql, 25);
+            $modelTrunks = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
+        } else {
+
+            if ($this->tariffObj[0]['trunk_group_type'] == 1) {
+                $sql = "SELECT * FROM pkg_trunk_group_trunk WHERE id_trunk_group = " . $this->tariffObj[0]['id_trunk_group'] . " ORDER BY id ASC";
+            } else if ($this->tariffObj[0]['trunk_group_type'] == 2) {
+                $sql = "SELECT * FROM pkg_trunk_group_trunk WHERE id_trunk_group = " . $this->tariffObj[0]['id_trunk_group'] . " ORDER BY RAND() ";
+            } else if ($this->tariffObj[0]['trunk_group_type'] == 3) {
+                $sql = "SELECT *, (SELECT buyrate FROM pkg_rate_provider WHERE id_provider = tr.id_provider AND id_prefix = " . $this->tariffObj[0]['id_prefix'] . " LIMIT 1) AS buyrate  FROM pkg_trunk_group_trunk t  JOIN pkg_trunk tr ON t.id_trunk = tr.id WHERE id_trunk_group = " . $this->tariffObj[0]['id_trunk_group'] . " ORDER BY buyrate IS NULL , buyrate ";
+            }
+            $agi->verbose($sql, 25);
+            $modelTrunks = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
+        }
+
+        if (! isset($modelTrunks[0]->id)) {
             $MAGNUS->hangup($agi, 34);
             return;
         }
-
         $original_calleid = $MAGNUS->CallerID;
 
         foreach ($modelTrunks as $key => $trunk) {
@@ -666,8 +676,20 @@ class CalcAgi
 
             $agi->set_variable("CALLERID(num)", $MAGNUS->CallerID);
 
-            $this->sendCalltoTrunk($MAGNUS, $agi, $destination, $prefix, $tech, $trunkcode, $removeprefix, $timeout
-                , $addparameter, $inuse, $maxuse, $allow_error);
+            $this->sendCalltoTrunk(
+                $MAGNUS,
+                $agi,
+                $destination,
+                $prefix,
+                $tech,
+                $trunkcode,
+                $removeprefix,
+                $timeout,
+                $addparameter,
+                $inuse,
+                $maxuse,
+                $allow_error
+            );
 
             if ($this->dialstatus == "CANCEL" || $this->dialstatus == "NOANSWER" || $this->dialstatus == "BUSY") {
                 $this->real_answeredtime = $this->answeredtime = 0;
@@ -677,7 +699,6 @@ class CalcAgi
             } else {
                 break;
             }
-
         }
 
         //# Ooh, something actually happened!
@@ -688,7 +709,6 @@ class CalcAgi
             } else {
                 $agi->execute((busy), busy);
             }
-
         } elseif ($this->dialstatus == "NOANSWER") {
             $this->real_answeredtime = $this->answeredtime = 0;
             if ($MAGNUS->play_audio == 1) {
@@ -696,7 +716,6 @@ class CalcAgi
             } else {
                 $agi->execute((congestion), Congestion);
             }
-
         } elseif ($this->dialstatus == "CANCEL") {
             $this->real_answeredtime = $this->answeredtime = 0;
         } elseif (($this->dialstatus == "CHANUNAVAIL") || ($this->dialstatus == "CONGESTION")) {
@@ -705,8 +724,20 @@ class CalcAgi
         return true;
     }
 
-    public function sendCalltoTrunk($MAGNUS, $agi, $destination, $prefix, $tech, $ipaddress, $removeprefix, $timeout
-        , $addparameter, $inuse, $maxuse, $allow_error) {
+    public function sendCalltoTrunk(
+        $MAGNUS,
+        $agi,
+        $destination,
+        $prefix,
+        $tech,
+        $ipaddress,
+        $removeprefix,
+        $timeout,
+        $addparameter,
+        $inuse,
+        $maxuse,
+        $allow_error
+    ) {
 
         if (strncmp($destination, $removeprefix, strlen($removeprefix)) == 0 || substr(strtoupper($removeprefix), 0, 1) == "X") {
             $destination = substr($destination, strlen($removeprefix));
@@ -728,8 +759,13 @@ class CalcAgi
 
         $MAGNUS->startRecordCall($agi);
         try {
-            $MAGNUS->run_dial($agi, $dialstr, $MAGNUS->agiconfig['dialcommand_param'] . $addparameter
-                , $this->tariffObj[0]['rc_directmedia'], $timeout);
+            $MAGNUS->run_dial(
+                $agi,
+                $dialstr,
+                $MAGNUS->agiconfig['dialcommand_param'] . $addparameter,
+                $this->tariffObj[0]['rc_directmedia'],
+                $timeout
+            );
         } catch (Exception $e) {
             //
         }
@@ -759,7 +795,7 @@ class CalcAgi
                 $agi->verbose($sql, 25);
                 $modelReteCallshop = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
 
-                if ( ! isset($modelReteCallshop->id)) {
+                if (! isset($modelReteCallshop->id)) {
                     $agi->verbose('Not found CallShop rate => ' . $MAGNUS->destination . ' ' . $MAGNUS->id_user);
                     return;
                 }
@@ -813,7 +849,7 @@ class CalcAgi
             $sql = "SELECT name FROM pkg_sip WHERE name  = '" . $MAGNUS->sip_account . "' LIMIT 1";
             $agi->verbose($sql, 25);
             $modelSipaccount = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
-            if ( ! isset($modelSipaccount->name)) {
+            if (! isset($modelSipaccount->name)) {
                 $MAGNUS->sip_account = $MAGNUS->CallerID;
             }
         }

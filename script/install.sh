@@ -142,7 +142,7 @@ make config
 ldconfig
 
 
-chmod -R 777 /tmp
+chmod -R 1777 /tmp
  
 
 echo '
@@ -794,7 +794,7 @@ php /var/www/html/mbilling/cron.php updatemysql
 chown -R asterisk:asterisk /var/lib/php/session*
 chown -R asterisk:asterisk /var/spool/asterisk/outgoing/
 chown -R asterisk:asterisk /etc/asterisk
-chmod -R 777 /tmp
+chmod -R 1777 /tmp
 chmod -R 555 /var/www/html/mbilling/
 chmod -R 750 /var/www/html/mbilling/resources/reports 
 chmod -R 774 /var/www/html/mbilling/protected/runtime/

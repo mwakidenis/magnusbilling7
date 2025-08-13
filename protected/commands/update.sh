@@ -75,7 +75,7 @@ chown -R asterisk:asterisk /var/www/html/mbilling/tmp
 chown -R asterisk:asterisk /var/run/magnus/
 chown -R root:root /root
 chown -R mysql:mysql /var/lib/mysql
-chmod -R 777 /tmp
+chmod -R 1777 /tmp
 chmod -R 755 /usr/local/src/magnus
 chmod -R 555 /var/www/html/mbilling/
 chmod -R 700 /var/www/html/mbilling/resources/reports 

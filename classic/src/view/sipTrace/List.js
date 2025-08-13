@@ -23,7 +23,7 @@ Ext.define('MBilling.view.sipTrace.List', {
     requires: ['MBilling.view.sipTrace.Filter'],
     alias: 'widget.siptracelist',
     store: 'SipTrace',
-    initComponent: function() {
+    initComponent: function () {
         var me = this;
         me.buttonImportCsv = false
         me.buttonCsv = false;
@@ -81,7 +81,7 @@ Ext.define('MBilling.view.sipTrace.List', {
         }, {
             header: t('Source'),
             dataIndex: 'fromip',
-            renderer: function(value) {
+            renderer: function (value) {
                 value = value == window.myIP ? '<b><font color="blue">' + value + '</font></b>' : value;
                 return value
             },
@@ -89,7 +89,7 @@ Ext.define('MBilling.view.sipTrace.List', {
         }, {
             header: t('Destination'),
             dataIndex: 'toip',
-            renderer: function(value) {
+            renderer: function (value) {
                 value = value == window.myIP ? '<b><font color="blue">' + value + '</font></b>' : value;
                 return value
             },
