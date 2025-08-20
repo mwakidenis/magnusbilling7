@@ -14,8 +14,7 @@ class LinuxAccess
     {
 
         Yii::log('LinuxAccess::exec -> ' . $command, 'error');
-        $sanitized = escapeshellcmd($command);
-        exec($sanitized, $output);
+        exec($command, $output);
         return $output;
     }
 

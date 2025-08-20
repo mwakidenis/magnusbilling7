@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -31,20 +32,19 @@ class TrunkSIPCodesCommand extends ConsoleCommand
             $db = new SQLite3($cache_path);
             $db->exec('CREATE TABLE IF NOT EXISTS sipcodes (' . $fields . ');');
         } catch (Exception $e) {
-
         }
 
-        if ( ! file_exists('/var/log/asterisk/magnus_processed ')) {
+        if (! file_exists('/var/log/asterisk/magnus_processed ')) {
 
             file_put_contents('/var/log/asterisk/magnus_processed', '');
         }
 
-        copy('cp -rf /var/log/asterisk/magnus /var/log/asterisk/magnus_new');
+        copy('/var/log/asterisk/magnus', '/var/log/asterisk/magnus_new');
 
         $lines = LinuxAccess::exec('diff -u /var/log/asterisk/magnus_processed /var/log/asterisk/magnus_new');
 
-        unlinkc('/var/log/asterisk/magnus_processed');
-        rename('/var/log/asterisk/magnus_new /var/log/asterisk/magnus_processed');
+        unlink('/var/log/asterisk/magnus_processed');
+        rename('/var/log/asterisk/magnus_new', '/var/log/asterisk/magnus_processed');
 
         $values = '';
 
@@ -75,7 +75,6 @@ class TrunkSIPCodesCommand extends ConsoleCommand
             } else {
                 $i++;
             }
-
         }
 
         if ($i < 200 && $i > 0) {
@@ -115,7 +114,6 @@ class TrunkSIPCodesCommand extends ConsoleCommand
                     }
                 }
             }
-
         }
     }
 }

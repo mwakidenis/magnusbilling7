@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -31,11 +32,17 @@ class DidwwController extends Controller
 
     public function init()
     {
+
+
         parent::init();
         $this->api_key            = $this->config['global']['didww_api_key'];
         $this->url                = $this->config['global']['didww_url'];
         $this->profit             = '1.' . $this->config['global']['didww_profit'];
         $this->currency_converter = $this->config['global']['didww_curreny_converter'];
+
+        if (strlen($this->api_key) < 10) {
+            exit;
+        }
     }
 
     public function actionAdd()
@@ -50,7 +57,6 @@ class DidwwController extends Controller
                 'status' => $this->orderDid(),
 
             ]);
-
         } else if (isset($_POST['Did']['did'])) {
 
             $this->render('confirmation', [
@@ -59,34 +65,30 @@ class DidwwController extends Controller
                 'profit' => $this->profit,
 
             ]);
-
         } elseif (isset($_POST['Did']['city'])) {
             $this->render('did', [
                 'did'  => $did,
                 'dids' => $this->getDids($_POST['Did']['city']),
 
             ]);
-
         } else if (isset($_POST['Did']['country'])) {
 
             $this->render('city', [
                 'did'    => $did,
                 'cities' => $this->getCities($_POST['Did']['country']),
             ]);
-
         } else {
             $this->render('country', [
                 'did'       => $did,
                 'countries' => $this->getCountries(),
             ]);
         }
-
     }
 
     public function confirmeDid($id_did)
     {
 
-        if ( ! is_numeric($id_did)) {
+        if (! is_numeric($id_did)) {
             exit;
         }
 
@@ -146,14 +148,15 @@ class DidwwController extends Controller
                 'type'       => 'orders',
                 'attributes' => [
                     'allow_back_ordering' => true,
-                    'items'               => [[
-                        'type'       => 'did_order_items',
-                        'attributes' => [
-                            'qty'    => '1',
-                            'sku_id' => Yii::app()->session['sku_id'],
-                        ],
+                    'items'               => [
+                        [
+                            'type'       => 'did_order_items',
+                            'attributes' => [
+                                'qty'    => '1',
+                                'sku_id' => Yii::app()->session['sku_id'],
+                            ],
 
-                    ],
+                        ],
                     ],
                 ],
             ],
@@ -209,13 +212,12 @@ class DidwwController extends Controller
         }
 
         return $order->data->attributes->status;
-
     }
 
     public function getDids($id_city)
     {
 
-        if ( ! is_numeric($id_city)) {
+        if (! is_numeric($id_city)) {
             exit;
         }
 
@@ -247,7 +249,7 @@ class DidwwController extends Controller
 
         $dids = json_decode($result);
 
-        if ( ! isset($dids->data[0]->id)) {
+        if (! isset($dids->data[0]->id)) {
 
             echo 'We not have DID to this city. <a href="' . $_SERVER['REQUEST_URI'] . '"> Click here to restart<a/>';
             exit;
@@ -262,7 +264,6 @@ class DidwwController extends Controller
         }
 
         return $result;
-
     }
 
     public function getCities($country_id)
@@ -313,17 +314,15 @@ class DidwwController extends Controller
             if (count($did_groups->data) >= 1000) {
                 break;
             }
-
         }
 
-        if ( ! isset($result[0])) {
+        if (! isset($result[0])) {
 
             echo 'We not have DID to this city. <a href="' . $_SERVER['REQUEST_URI'] . '"> Click here to restart<a/>';
             exit;
         }
 
         return $result;
-
     }
 
     public function getCountries()
@@ -377,7 +376,5 @@ class DidwwController extends Controller
             exit('Invalid data');
         }
         return $result;
-
     }
-
 }
