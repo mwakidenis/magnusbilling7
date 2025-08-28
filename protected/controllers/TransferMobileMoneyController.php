@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -59,7 +60,6 @@ class TransferMobileMoneyController extends Controller
         $this->token    = $this->config['global']['BDService_token'];
         $this->currency = $this->config['global']['BDService_cambio'];
         $this->url      = $this->config['global']['BDService_url'];
-
     }
 
     public function actionIndex($asJson = true, $condition = null)
@@ -84,9 +84,11 @@ class TransferMobileMoneyController extends Controller
                 $this->number = substr($this->number, 2);
             }
 
-            if ($this->number == '' || !is_numeric($this->number)
+            if (
+                $this->number == '' || !is_numeric($this->number)
                 || strlen($this->number) < 8
-                || preg_match('/ /', $this->number)) {
+                || preg_match('/ /', $this->number)
+            ) {
                 $this->modelTransferToMobile->addError('number', Yii::t('zii', 'Number invalid, try again'));
             }
         }
@@ -135,9 +137,7 @@ class TransferMobileMoneyController extends Controller
                 } else {
                     $this->confirmRefill();
                 }
-
             }
-
         }
         //check the number and methods.
 
@@ -226,7 +226,6 @@ class TransferMobileMoneyController extends Controller
             'amountDetails'         => $amountDetails,
             'post'                  => $_POST,
         ));
-
     }
 
     public function addInDataBase()
@@ -341,7 +340,7 @@ class TransferMobileMoneyController extends Controller
 
             //check if agent have credit
 
-            $modelAgent = User::model()->findByPk($this->modelTransferToMobile->id_user);
+            $modelAgent = User::model()->findByPk((int) $this->modelTransferToMobile->id_user);
 
             if ($modelAgent->credit + $modelAgent->creditlimit < $this->cost) {
 
@@ -364,7 +363,6 @@ class TransferMobileMoneyController extends Controller
 
                 $this->agent_cost = $modelSendCreditProducts->wholesale_price *= (1 - $agentProfit / 100);
             }
-
         }
     }
 
@@ -384,7 +382,6 @@ class TransferMobileMoneyController extends Controller
 
         $user_cost = $cost - ($cost * ($user_profit / 100));
         echo $currency . ' ' . number_format($user_cost, 2);
-
     }
 
     public function confirmRefill()
@@ -405,7 +402,6 @@ class TransferMobileMoneyController extends Controller
 
         $this->updateDataBase();
         exit;
-
     }
 
     public function checkResult($result)
@@ -423,9 +419,7 @@ class TransferMobileMoneyController extends Controller
             exit;
         } elseif (preg_match("/SUCCESS/", strtoupper($result))) {
             $this->releaseCredit($result, '');
-
         }
-
     }
 
     public function releaseCredit($result, $status)
@@ -464,7 +458,8 @@ class TransferMobileMoneyController extends Controller
         $this->sell_price = $_POST['TransferToMobile']['amountValuesEUR'];
 
         if ($status != 'error') {
-            User::model()->updateByPk(Yii::app()->session['id_user'],
+            User::model()->updateByPk(
+                Yii::app()->session['id_user'],
                 array(
                     'credit' => new CDbExpression('credit - ' . $this->user_cost),
                 )
@@ -494,9 +489,10 @@ class TransferMobileMoneyController extends Controller
 
         if ($this->modelTransferToMobile->id_user > 1) {
 
-            $modelAgentOld = User::model()->findByPk($this->modelTransferToMobile->id_user);
+            $modelAgentOld = User::model()->findByPk((int) $this->modelTransferToMobile->id_user);
 
-            User::model()->updateByPk($this->modelTransferToMobile->id_user,
+            User::model()->updateByPk(
+                $this->modelTransferToMobile->id_user,
                 array(
                     'credit' => new CDbExpression('credit - ' . $this->agent_cost),
                 )
@@ -515,7 +511,6 @@ class TransferMobileMoneyController extends Controller
             $command->bindValue(":costAgent", $this->agent_cost * -1, PDO::PARAM_STR);
             $command->bindValue(":description", $description . '. TS Old credit ' . $modelAgentOld->credit, PDO::PARAM_STR);
             $command->execute();
-
         }
     }
 
@@ -622,12 +617,10 @@ class TransferMobileMoneyController extends Controller
                 Yii::app()->session['allowedAmount'] = explode('-', $product->product);
             }
             $i++;
-
         }
 
         Yii::app()->session['amounts']    = $values;
         Yii::app()->session['operatorId'] = $operatorId;
-
     }
 
     public function getConfirmationPrice()
@@ -657,7 +650,6 @@ class TransferMobileMoneyController extends Controller
         }
 
         return $this->user_cost;
-
     }
 
     public function actionGetBuyingPriceDBService($method = '', $valueAmoutEUR = '', $valueAmoutBDT = '', $country = '')
@@ -680,7 +672,6 @@ class TransferMobileMoneyController extends Controller
             Yii::app()->session['id_product'] = $modelSendCreditProducts->id;
             Yii::app()->session['amount']     = $amount;
             exit;
-
         } else {
 
             $amountEUR = $valueAmoutEUR == '' ? $_GET['valueAmoutEUR'] : $valueAmoutEUR;
@@ -721,7 +712,6 @@ class TransferMobileMoneyController extends Controller
             Yii::app()->session['amount']     = $amount;
             exit;
         }
-
     }
 
     public function actionConvertCurrency()
@@ -785,7 +775,6 @@ class TransferMobileMoneyController extends Controller
             ));
             Yii::app()->session['id_product'] = (int) $modelSendCreditRates->id_product;
             echo $amount                      = number_format($modelSendCreditRates->sell_price * $amountBDT, 2);
-
         }
     }
 

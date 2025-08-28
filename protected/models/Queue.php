@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Modelo para a tabela "Queue".
  * =======================================
@@ -101,7 +102,7 @@ class Queue extends Model
                             break;
                     }
                 }
-                if ( ! isset($model->id)) {
+                if (! isset($model->id)) {
                     $this->addError($attribute, Yii::t('zii', 'You need add a existent Sip Account, IVR or Queue.'));
                 }
                 $this->max_wait_time_action = $type . '/' . $destination;
@@ -115,7 +116,7 @@ class Queue extends Model
             $this->addError($attribute, Yii::t('zii', 'No space allow in name'));
         }
 
-        if ( ! preg_match('/^[0-9]|^[A-Z]|^[a-z]/', $this->name)) {
+        if (! preg_match('/^[0-9]|^[A-Z]|^[a-z]/', $this->name)) {
             $this->addError($attribute, Yii::t('zii', 'Name need start with numbers or letters'));
         }
     }
@@ -169,11 +170,10 @@ class Queue extends Model
 
     public function beforeSave()
     {
-        if ( ! $this->getIsNewRecord()) {
-            $model = Queue::model()->findByPk($this->id);
+        if (! $this->getIsNewRecord()) {
+            $model = Queue::model()->findByPk((int) $this->id);
 
             QueueMember::model()->updateAll(['queue_name' => $this->name], 'queue_name = :key', [':key' => $model->name]);
-
         }
         return parent::beforeSave();
     }

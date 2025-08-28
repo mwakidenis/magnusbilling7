@@ -330,7 +330,7 @@ class AsteriskAccess
     public static function generateCallFile($callFile, $time = 0)
     {
         $aleatorio    = str_replace(" ", "", microtime(true));
-        $arquivo_call = "/var/www/html/mbilling/tmp/" . $aleatorio . ".call";
+        $arquivo_call = "/var/spool/asterisk/outgoing/" . $aleatorio . ".call";
         $fp           = fopen("$arquivo_call", "a+");
         fwrite($fp, $callFile);
         fclose($fp);
@@ -341,10 +341,6 @@ class AsteriskAccess
         @chown("$arquivo_call", "asterisk");
         @chgrp("$arquivo_call", "asterisk");
         chmod("$arquivo_call", 0755);
-
-        $destination_file = '/var/spool/asterisk/outgoing/' . $aleatorio . '.call'; // Assuming $aleatorio is defined
-
-        rename($arquivo_call, $destination_file);
     }
 
     public function getCallsPerDid($did, $agi = null)

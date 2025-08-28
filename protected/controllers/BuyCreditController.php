@@ -344,7 +344,7 @@ class BuyCreditController extends Controller
             $amount = $session->amount_total / 100.0;
 
             Yii::log("payment aproved via Stripe to user para user_id: $userId - amount: $amount", 'info');
-            $modelUser = User::model()->findByPk($userId);
+            $modelUser = User::model()->findByPk((int) $userId);
 
             if (isset($modelUser->id) && Refill::model()->countRefill($sessionId, $modelUser->id) == 0) {
                 $description      = 'Stripe, transaccion ' . $sessionId;

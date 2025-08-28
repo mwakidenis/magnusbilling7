@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -53,7 +54,6 @@ class TransferMobileCreditController extends Controller
         $this->token    = $this->config['global']['fm_transfer_to_ token'];
         $this->currency = $this->config['global']['fm_transfer_currency'];
         $this->url      = 'https://fm.transfer-to.com/cgi-bin/shop/topup?';
-
     }
 
     public function actionIndex($asJson = true, $condition = null)
@@ -85,7 +85,6 @@ class TransferMobileCreditController extends Controller
             } else {
                 $_POST['TransferToMobile']['amountValues'] = $_POST['amountValues'];
             }
-
         }
 
         //if we already request the number info, check if select a valid amount
@@ -150,14 +149,14 @@ class TransferMobileCreditController extends Controller
 
                     $this->confirmRefill();
                 }
-
             }
-
         }
 
-        if ($this->number == '' || !is_numeric($this->number)
+        if (
+            $this->number == '' || !is_numeric($this->number)
             || strlen($this->number) < 8
-            || preg_match('/ /', $this->number)) {
+            || preg_match('/ /', $this->number)
+        ) {
             $this->modelTransferToMobile->addError('number', Yii::t('zii', 'Number invalid, try again'));
         }
 
@@ -184,7 +183,6 @@ class TransferMobileCreditController extends Controller
             'amountDetails'         => $amountDetails,
 
         ));
-
     }
 
     public function addInDataBase($confirmed = 1)
@@ -287,14 +285,13 @@ class TransferMobileCreditController extends Controller
         } else {
             $this->user_cost   = $this->cost - ($this->cost * ($user_profit / 100));
             $this->user_profit = $this->cost * ($user_profit / 100);
-
         }
 
         if ($this->modelTransferToMobile->id_user > 1) {
 
             //check if agent have credit
 
-            $modelAgent = User::model()->findByPk($this->modelTransferToMobile->id_user);
+            $modelAgent = User::model()->findByPk((int) $this->modelTransferToMobile->id_user);
 
             if ($modelAgent->credit + $modelAgent->creditlimit < $this->cost) {
 
@@ -311,13 +308,11 @@ class TransferMobileCreditController extends Controller
             if (isset($_POST['TransferToMobile']['amountValuesBDT']) && is_numeric($_POST['TransferToMobile']['amountValuesBDT'])) {
 
                 $this->agent_cost = ($_POST['TransferToMobile']['amountValuesBDT'] * $this->cost) - ($_POST['TransferToMobile']['amountValuesBDT'] * $this->cost) * ($agentProfit / 100);
-
             } else {
                 $modelSendCreditProducts = SendCreditProducts::model()->findByPk((int) $_POST['TransferToMobile']['amountValues']);
                 $modelSendCreditRates    = SendCreditRates::model()->find($modelSendCreditProducts->id);
 
                 $this->agent_cost = $modelSendCreditProducts->wholesale_price - ($modelSendCreditProducts->wholesale_price * $agentProfit / 100);
-
             }
 
             if ($this->test == true) {
@@ -340,7 +335,6 @@ class TransferMobileCreditController extends Controller
 
             $user_cost = $cost - ($cost * ($user_profit / 100));
             echo $currency . ' ' . number_format($user_cost, 2);
-
         } else {
 
             $modelSendCreditProducts = SendCreditProducts::model()->findByPk((int) $_GET['id']);
@@ -354,7 +348,6 @@ class TransferMobileCreditController extends Controller
             $user_cost = $cost - ($cost * ($user_profit / 100));
             echo $currency . ' ' . number_format($user_cost, 2);
         }
-
     }
 
     public function confirmRefill()
@@ -377,7 +370,6 @@ class TransferMobileCreditController extends Controller
 
         if (preg_match_all('/-/', $modelSendCreditRates->idProduct->product) && isset($_POST['TransferToMobile']['amountValuesEUR']) && $_POST['TransferToMobile']['amountValuesEUR'] > 0) {
             $modelSendCreditRates->sell_price = $_POST['TransferToMobile']['amountValuesEUR'];
-
         }
 
         if (!isset($modelSendCreditRates->id)) {
@@ -437,7 +429,6 @@ class TransferMobileCreditController extends Controller
 
         $this->updateDataBase();
         exit;
-
     }
 
     public function checkResult($result, $modelSendCreditRates = [])
@@ -447,7 +438,6 @@ class TransferMobileCreditController extends Controller
 
         if (preg_match("/Transaction successful/", $result[1])) {
             $this->releaseCredit($result, '', $modelSendCreditRates);
-
         } else {
             echo '<div align=center id="container">';
             echo '<font color=red>ERROR: ' . $result[1] . '</font><br><br>';
@@ -455,7 +445,6 @@ class TransferMobileCreditController extends Controller
             echo '</div>';
             exit;
         }
-
     }
 
     public function releaseCredit($result, $status, $modelSendCreditRates = [])
@@ -530,7 +519,8 @@ class TransferMobileCreditController extends Controller
             echo $description;
         }
 
-        User::model()->updateByPk(Yii::app()->session['id_user'],
+        User::model()->updateByPk(
+            Yii::app()->session['id_user'],
             array(
                 'credit' => new CDbExpression('credit - ' . $this->user_cost),
             )
@@ -564,9 +554,10 @@ class TransferMobileCreditController extends Controller
 
         if ($this->modelTransferToMobile->id_user > 1) {
 
-            $modelAgentOld = User::model()->findByPk($this->modelTransferToMobile->id_user);
+            $modelAgentOld = User::model()->findByPk((int) $this->modelTransferToMobile->id_user);
 
-            User::model()->updateByPk($this->modelTransferToMobile->id_user,
+            User::model()->updateByPk(
+                $this->modelTransferToMobile->id_user,
                 array(
                     'credit' => new CDbExpression('credit - ' . $this->agent_cost),
                 )
@@ -593,7 +584,6 @@ class TransferMobileCreditController extends Controller
             if ($this->test == true) {
                 echo 'INSERT AGENT REFILL -> ' . $sql . "<br>";
             }
-
         }
     }
 
@@ -606,12 +596,14 @@ class TransferMobileCreditController extends Controller
 
         if (isset($this->config['global']['fm_transfer_to_username'])) {
 
-            $modelRefill = Refill::model()->find('description LIKE :key AND date BETWEEN :key1 AND  NOW() AND payment = 1 AND id_user = :key2',
+            $modelRefill = Refill::model()->find(
+                'description LIKE :key AND date BETWEEN :key1 AND  NOW() AND payment = 1 AND id_user = :key2',
                 array(
                     ':key'  => "%" . $number . "%",
                     ':key1' => date('Y-m-d H:i', mktime(date('H'), date('i') - 2, date('s'), date('m'), date('d'), date('Y'))),
                     ':key2' => Yii::app()->session['id_user'],
-                ));
+                )
+            );
             if (isset($modelRefill->id)) {
                 echo '<div align=center id="container">';
                 echo "<font color=red>You already send credit to this number. Wait minimal 2 minutes to new recharge</font>";
@@ -640,10 +632,12 @@ class TransferMobileCreditController extends Controller
                 //not receive Operator ID FROM API. API OFF LINE. GET operator from country_code
                 $numberFormate           = $this->number;
                 $numberFormate           = substr($numberFormate, 0, 2) == '00' ? substr($numberFormate, 2) : $numberFormate;
-                $modelSendCreditProducts = SendCreditProducts::model()->findAll('country_code = SUBSTRING(:key,1,length(country_code)) AND status = 1',
+                $modelSendCreditProducts = SendCreditProducts::model()->findAll(
+                    'country_code = SUBSTRING(:key,1,length(country_code)) AND status = 1',
                     array(
                         ':key' => $numberFormate,
-                    ));
+                    )
+                );
                 $forceOperatorSelect = true;
                 // echo $modelSendCreditProducts[0]->id . ' ' . $modelSendCreditProducts[0]->country_code;
 
@@ -658,12 +652,14 @@ class TransferMobileCreditController extends Controller
                 exit;
             }
 
-            $modelSendCreditProducts = SendCreditProducts::model()->findAll('status = 1 AND operator_name = :key AND country_code =:key1 AND type = :key2',
+            $modelSendCreditProducts = SendCreditProducts::model()->findAll(
+                'status = 1 AND operator_name = :key AND country_code =:key1 AND type = :key2',
                 array(
                     ':key'  => $modelSendCreditProducts[0]->operator_name,
                     ':key1' => $modelSendCreditProducts[0]->country_code,
                     ':key2' => 'Mobile Credit',
-                ));
+                )
+            );
 
             $ids_products = array();
             foreach ($modelSendCreditProducts as $key => $products) {
@@ -703,7 +699,6 @@ class TransferMobileCreditController extends Controller
                     Yii::app()->session['allowedAmount'] = explode('-', $product->product);
                 }
                 $i++;
-
             }
 
             Yii::app()->session['amounts']      = isset($forceOperatorSelect) ? array() : $values;
@@ -714,11 +709,9 @@ class TransferMobileCreditController extends Controller
             $this->modelTransferToMobile->operator = isset($forceOperatorSelect) ? '' : $modelSendCreditProducts[0]->operator_name;
 
             return $this->modelTransferToMobile;
-
         } else {
             return false;
         }
-
     }
 
     public function actionPrintRefill()
@@ -803,39 +796,38 @@ class TransferMobileCreditController extends Controller
         $values = array();
         $i      = 0;
 
-        ?>
-            <?php foreach ($modelSendCreditProducts as $key => $product): ?>
+?>
+        <?php foreach ($modelSendCreditProducts as $key => $product): ?>
 
-                <?php if (is_numeric($product->product)): ?>
+            <?php if (is_numeric($product->product)): ?>
 
-                    <?php Yii::app()->session['is_interval'] = false;?>
-                    <label for="2" class="company__row" id="productLabel<?php echo $i ?>">
-                            <input type="radio"  id="productinput<?php echo $i ?>" name="amountValues" value="<?php echo $product->id ?>">
-                            <div  class="company__logo-container" onclick="handleChange1(<?php echo $i ?>,<?php echo $i + 1 ?>);" id='product<?php echo $i ?>' >
-                                <?php echo '<font size=1px>' . $product->currency_dest . ' </font>' . $product->product . ' = <font size=1px>' . $product->currency_orig . ' </font>' . number_format($modelSendCreditRates[$i]->sell_price, 2) ?>
+                <?php Yii::app()->session['is_interval'] = false; ?>
+                <label for="2" class="company__row" id="productLabel<?php echo $i ?>">
+                    <input type="radio" id="productinput<?php echo $i ?>" name="amountValues" value="<?php echo $product->id ?>">
+                    <div class="company__logo-container" onclick="handleChange1(<?php echo $i ?>,<?php echo $i + 1 ?>);" id='product<?php echo $i ?>'>
+                        <?php echo '<font size=1px>' . $product->currency_dest . ' </font>' . $product->product . ' = <font size=1px>' . $product->currency_orig . ' </font>' . number_format($modelSendCreditRates[$i]->sell_price, 2) ?>
 
-                                </div>
-                    </label>
-                        <?php $i++;?>
-                <?php else: ?>
+                    </div>
+                </label>
+                <?php $i++; ?>
+            <?php else: ?>
 
-                        <?php Yii::app()->session['is_interval']                   = true;?>
-                        <?php Yii::app()->session['interval_currency']             = $product->currency_dest;?>
-                        <?php Yii::app()->session['interval_product_id']           = $product->id;?>
-                        <?php Yii::app()->session['interval_product_interval']     = $product->product;?>
-                        <?php Yii::app()->session['interval_product_sell_price']   = trim($modelSendCreditRates[$i]->sell_price);?>
-                        <?php Yii::app()->session['interval_product_retail_price'] = trim($product->retail_price);?>
-                        <?php Yii::app()->session['allowedAmount']                 = explode('-', $product->product)?>
-                <?php endif?>
-            <?php endforeach;?>
+                <?php Yii::app()->session['is_interval']                   = true; ?>
+                <?php Yii::app()->session['interval_currency']             = $product->currency_dest; ?>
+                <?php Yii::app()->session['interval_product_id']           = $product->id; ?>
+                <?php Yii::app()->session['interval_product_interval']     = $product->product; ?>
+                <?php Yii::app()->session['interval_product_sell_price']   = trim($modelSendCreditRates[$i]->sell_price); ?>
+                <?php Yii::app()->session['interval_product_retail_price'] = trim($product->retail_price); ?>
+                <?php Yii::app()->session['allowedAmount']                 = explode('-', $product->product) ?>
+            <?php endif ?>
+        <?php endforeach; ?>
 
-        <?php
-if (Yii::app()->session['is_interval'] == true) {
+<?php
+        if (Yii::app()->session['is_interval'] == true) {
             echo '|is_interval';
         }
         Yii::app()->session['amounts']    = $values;
         Yii::app()->session['operatorId'] = $operatorId;
-
     }
 
     public function actionGetProductTax()
@@ -864,8 +856,6 @@ if (Yii::app()->session['is_interval'] == true) {
             $amountBDT = $_GET['amount'] * $modelSendCreditProducts->retail_price;
 
             echo $amount = number_format($amountBDT, 2);
-
         }
     }
-
 }

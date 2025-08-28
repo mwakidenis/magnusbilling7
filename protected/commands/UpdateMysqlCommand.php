@@ -2095,7 +2095,7 @@ exten => s,1,Set(MASTER_CHANNEL(TRUNKANSWERTIME)=\${EPOCH})
             $sql = "ALTER TABLE pkg_firewall ADD  UNIQUE KEY ipperserver (ip, id_server);";
             $this->executeDB($sql);
 
-            exec("echo '\n*/2 * * * * root php /var/www/html/mbilling/cron.php failtwobanip' >> /etc/crontab");
+            exec("echo '\n*/2 * * * * root flock -n /tmp/importcdr.lock php /var/www/html/mbilling/cron.php failtwobanip' >> /etc/crontab");
             exec("sed -i 's/ssh-iptables/sshd/g' /etc/fail2ban/jail.local");
             exec("systemctl restart fail2ban");
 

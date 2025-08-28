@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Diddestination".
  *
@@ -41,7 +42,8 @@ class DiddestinationController extends Controller
             'table'       => 'pkg_ivr',
             'pk'          => 'id',
             'fieldReport' => 'name',
-        ], 'id_queue' => [
+        ],
+        'id_queue' => [
             'table'       => 'pkg_queue',
             'pk'          => 'id',
             'fieldReport' => 'name',
@@ -76,8 +78,8 @@ class DiddestinationController extends Controller
 
             $values['voip_call'] = isset($values['voip_call']) ? $values['voip_call'] : 1;
 
-            $did       = Did::model()->findByPk($values['id_did']);
-            $modelUser = User::model()->findByPk($values['id_user']);
+            $did       = Did::model()->findByPk((int) $values['id_did']);
+            $modelUser = User::model()->findByPk((int) $values['id_user']);
 
             if (isset($modelUser->idGroup->idUserType->id) && $modelUser->idGroup->idUserType->id != 3) {
                 echo json_encode([
@@ -133,7 +135,6 @@ class DiddestinationController extends Controller
                 ]);
                 exit;
             }
-
         } else {
 
             $modelDiddestination = Diddestination::model()->findByPk((int) $values['id']);
@@ -168,9 +169,7 @@ class DiddestinationController extends Controller
                 ]);
                 exit;
             }
-
         }
-
     }
 
     public function actionbulkdestinatintion()
@@ -218,7 +217,7 @@ class DiddestinationController extends Controller
                 if (strlen($values['context']) && $values['context'] != 'undefined') {
                     $modelDiddestination->context = $values['context'];
                 }
-                if ( ! strlen($values['destination'])) {
+                if (! strlen($values['destination'])) {
                     $modelDiddestination->destination = '';
                 }
 
@@ -227,7 +226,6 @@ class DiddestinationController extends Controller
                 $modelDiddestination->save();
 
                 $this->afterSave($modelDiddestination, $values);
-
             } else {
                 //update destination
 
@@ -256,13 +254,12 @@ class DiddestinationController extends Controller
                             $modelDiddestination->context = $values['context'];
                         }
 
-                        if ( ! strlen($values['destination'])) {
+                        if (! strlen($values['destination'])) {
                             $modelDiddestination->destination = '';
                         }
 
                         $values = $this->beforeSave($values);
                         $modelDiddestination->save();
-
                     } else {
                         continue;
                     }
@@ -274,7 +271,6 @@ class DiddestinationController extends Controller
             $this->nameSuccess => $this->success,
             $this->nameMsg     => $this->msg,
         ]);
-
     }
 
     public function afterSave($model, $values)
@@ -282,7 +278,7 @@ class DiddestinationController extends Controller
         AsteriskAccess::instance()->writeDidContext();
 
         if ($this->isNewRecord) {
-            $modelDid = Did::model()->findByPk($model->id_did);
+            $modelDid = Did::model()->findByPk((int) $model->id_did);
 
             if ($modelDid->id_user == null && $modelDid->reserved == 0) //se for ativaçao adicionar o pagamento e cobrar
             {
@@ -296,18 +292,26 @@ class DiddestinationController extends Controller
                 if ($priceDid > 0) // se tiver custo
                 {
 
-                    $modelUser = User::model()->findByPk($model->id_user);
+                    $modelUser = User::model()->findByPk((int) $model->id_user);
 
                     if ($modelUser->id_user == 1) //se for cliente do master
                     {
                         //adiciona a recarga e pagamento do custo de ativaçao
                         if ($modelDid->connection_charge > 0) {
-                            UserCreditManager::releaseUserCredit($model->id_user, $modelDid->connection_charge,
-                                Yii::t('zii', 'Activation DID') . '' . $modelDid->did, 0);
+                            UserCreditManager::releaseUserCredit(
+                                $model->id_user,
+                                $modelDid->connection_charge,
+                                Yii::t('zii', 'Activation DID') . '' . $modelDid->did,
+                                0
+                            );
                         }
 
-                        UserCreditManager::releaseUserCredit($model->id_user, $modelDid->fixrate,
-                            Yii::t('zii', 'Monthly payment DID') . '' . $modelDid->did, 0);
+                        UserCreditManager::releaseUserCredit(
+                            $model->id_user,
+                            $modelDid->fixrate,
+                            Yii::t('zii', 'Monthly payment DID') . '' . $modelDid->did,
+                            0
+                        );
 
                         $mail = new Mail(Mail::$TYPE_DID_CONFIRMATION, $model->id_user);
                         $mail->replaceInEmail(Mail::$BALANCE_REMAINING_KEY, $modelUser->credit);
@@ -316,7 +320,7 @@ class DiddestinationController extends Controller
                         $mail->send();
                     } else {
                         //charge the agent
-                        $modelUser         = User::model()->findByPk($modelUser->id_user);
+                        $modelUser         = User::model()->findByPk((int) $modelUser->id_user);
                         $modelUser->credit = $modelUser->credit - $priceDid;
                         $modelUser->save();
                     }
@@ -333,7 +337,6 @@ class DiddestinationController extends Controller
                 if (isset($mail)) {
                     $sendAdmin = $this->config['global ']['admin_received_email'] == 1 ? $mail->send($this->config['global ']['admin_email']) : null;
                 }
-
             }
         }
         return;
@@ -343,5 +346,4 @@ class DiddestinationController extends Controller
     {
         return;
     }
-
 }

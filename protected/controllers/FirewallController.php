@@ -42,7 +42,7 @@ class FirewallController extends Controller
         foreach ($ids as $value) {
 
 
-            $model = Firewall::model()->findByPk($value);
+            $model = Firewall::model()->findByPk((int) $value);
             $model->action = 3;
             $model->save();
         }

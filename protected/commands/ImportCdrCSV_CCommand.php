@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -30,11 +31,7 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
         } else {
             $server_set = '';
         }
-        if (isset($args[1]) && $args[1] == 'LOCAL') {
-            $local_command = $args[1];
-        } else {
-            $local_command = '';
-        }
+
 
         exec('mkdir -p /var/log/asterisk/cdr-csv/');
         $archive = false;
@@ -55,6 +52,15 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
         $con         = new CDbConnection($dsn, $user, $pass);
         $con->active = true;
         $time        = time();
+
+        $sql = "SHOW VARIABLES LIKE 'secure_file_priv'";
+        $result2 = Yii::app()->db->createCommand($sql)->queryAll();
+
+        if (isset($result2[0]['Value']) && $result2[0]['Value'] != '' || (isset($args[1]) && $args[1] == 'LOCAL')) {
+            $local_command = 'LOCAL';
+        } else {
+            $local_command = '';
+        }
 
         if (file_exists('/var/log/asterisk/cdr-csv/MBilling_Offer.csv')) {
             exec('mv /var/log/asterisk/cdr-csv/MBilling_Offer.csv /var/log/asterisk/cdr-csv/MBilling_Offer_' . $time . '.csv');
@@ -78,7 +84,6 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
             }
 
             exec("rm -rf /var/log/asterisk/cdr-csv/MBilling_Success_CallShop_" . $time . ".csv");
-
         }
 
         if ($result = $this->scan_dir('/var/log/asterisk/cdr-csv/', 1)) {
@@ -88,7 +93,6 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
 
                     if (preg_match('/^MBilling_Success/', $file)) {
                         $sql = "LOAD DATA " . $local_command . " INFILE '/var/log/asterisk/cdr-csv/" . $file . "' IGNORE INTO TABLE pkg_cdr FIELDS TERMINATED BY ','  LINES TERMINATED BY '\n'  (uniqueid,callerid,starttime,id_user,id_plan,src,id_prefix,id_trunk,calledstation,buycost,sessionbill,sessiontime,real_sessiontime,agent_bill,sipiax,id_campaign,terminatecauseid)  $server_set ";
-
                     } else if (preg_match('/^MBilling_Failed/', $file)) {
                         $sql = "LOAD DATA " . $local_command . " INFILE '/var/log/asterisk/cdr-csv/" . $file . "' IGNORE INTO TABLE pkg_cdr_failed FIELDS TERMINATED BY ','  LINES TERMINATED BY '\n'  (uniqueid,callerid,starttime,id_user,id_plan,src,id_prefix,id_trunk,calledstation,terminatecauseid,hangupcause)  $server_set ";
                     }
@@ -115,7 +119,6 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
                 } else {
                     exec("rm -rf /var/log/asterisk/cdr-csv/MBilling_Success_" . $time . ".csv");
                 }
-
             } catch (Exception $e) {
                 print_r($e);
             }
@@ -134,9 +137,7 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
                 }
             } catch (Exception $e) {
                 print_r($e);
-
             }
-
         }
 
         $con = null;
@@ -152,7 +153,7 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
             if (in_array($file, $ignored)) {
                 continue;
             }
-            if ( ! preg_match('/^MBilling_/', $file)) {
+            if (! preg_match('/^MBilling_/', $file)) {
                 if ($file != 'Master.csv' && $file != 'error.csv') {
                     exec('rm -rf /var/log/asterisk/cdr-csv/' . $file);
                 }
@@ -166,5 +167,4 @@ class ImportCdrCSV_CCommand extends CConsoleCommand
 
         return ($files) ? $files : false;
     }
-
 }

@@ -116,7 +116,7 @@ class SipController extends Controller
             }
         } else if ((isset($values['id_sip']) || isset($values['id_ivr']) || isset($values['id_queue'])) &  ! $this->isNewRecord) {
 
-            $modelSip = Sip::model()->findByPk($values['id']);
+            $modelSip = Sip::model()->findByPk((int) $values['id']);
 
             $type_forward = explode('|', $modelSip->forward);
 
@@ -130,7 +130,7 @@ class SipController extends Controller
             }
         } else if (isset($values['extension']) &&  ! $this->isNewRecord) {
 
-            $modelSip = Sip::model()->findByPk($values['id']);
+            $modelSip = Sip::model()->findByPk((int) $values['id']);
             $type_forward = explode('|', $modelSip->forward);
             $values['forward']   = $type_forward[0] . '|' . $values['extension'];
         }

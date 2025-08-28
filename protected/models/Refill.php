@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Modelo para a tabela "pkg_ui_authen".
  * =======================================
@@ -76,7 +77,7 @@ class Refill extends Model
     public function beforeSave()
     {
         if ($this->getIsNewRecord()) {
-            $modelUser         = User::model()->findByPk($this->id_user);
+            $modelUser         = User::model()->findByPk((int) $this->id_user);
             $creditOld         = $modelUser->credit;
             $this->description = $this->description . ', ' . Yii::t('zii', 'Old credit') . ' ' . round($creditOld, 2);
         }
@@ -89,11 +90,9 @@ class Refill extends Model
         if (isset($filter) && $filter[0]->value == 'day') {
             $sql = "SELECT id, DATE_FORMAT( DATE,  '%Y-%m-%d' ) AS CreditMonth , SUM( credit ) AS sumCreditMonth
                     FROM pkg_refill WHERE 1 GROUP BY DATE_FORMAT( DATE,  '%Y%m%d' ) ORDER BY id DESC LIMIT 30";
-
         } else {
             $sql = "SELECT id, DATE_FORMAT( DATE,  '%Y-%m' ) AS CreditMonth , SUM(credit) AS sumCreditMonth
                     FROM pkg_refill WHERE 1 GROUP BY EXTRACT(YEAR_MONTH FROM date)  ORDER BY id DESC LIMIT 20 ";
-
         }
         return Yii::app()->db->createCommand($sql)->queryAll();
     }
@@ -101,6 +100,5 @@ class Refill extends Model
     public function countRefill($code, $id_user)
     {
         return Refill::model()->count('description LIKE :key AND id_user = :key1', [':key' => '%' . $code . '%', ':key1' => (int) $id_user]);
-
     }
 }

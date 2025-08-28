@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -99,7 +100,6 @@ class TransferToMobileController extends Controller
                 } else {
                     $this->modelTransferToMobile->amountValues = $_POST['TransferToMobile']['amountValues'];
                 }
-
             }
 
             if ($this->modelTransferToMobile->method != 'international') {
@@ -110,13 +110,11 @@ class TransferToMobileController extends Controller
 
                 if ($_POST['TransferToMobile']['amountValuesBDT'] < $min) {
                     $this->modelTransferToMobile->addError('amountValuesBDT', Yii::t('zii', 'Amount is < then minimal allowed'));
-
                 } else if ($_POST['TransferToMobile']['amountValuesBDT'] > $max) {
                     $this->modelTransferToMobile->addError('amountValuesBDT', Yii::t('zii', 'Amount is > then maximum allowed'));
                 }
                 $this->modelTransferToMobile->amountValuesEUR = $_POST['TransferToMobile']['amountValuesEUR'];
                 $this->modelTransferToMobile->amountValuesBDT = $_POST['TransferToMobile']['amountValuesBDT'];
-
             }
 
             if ($this->modelTransferToMobile->method != 'international' && preg_match('/[A-Z][a-z]/', $_POST['TransferToMobile']['amountValuesBDT'])) {
@@ -156,9 +154,7 @@ class TransferToMobileController extends Controller
                 } else {
                     $this->confirmRefill();
                 }
-
             }
-
         }
         //check the number and methods.
         elseif (isset($_POST['TransferToMobile']['method'])) {
@@ -166,9 +162,11 @@ class TransferToMobileController extends Controller
                 $this->modelTransferToMobile->addError('method', Yii::t('zii', 'Please select a method'));
             }
 
-            if ($_POST['TransferToMobile']['number'] == '' || !is_numeric($_POST['TransferToMobile']['number'])
+            if (
+                $_POST['TransferToMobile']['number'] == '' || !is_numeric($_POST['TransferToMobile']['number'])
                 || strlen($_POST['TransferToMobile']['number']) < 8
-                || preg_match('/ /', $_POST['TransferToMobile']['number'])) {
+                || preg_match('/ /', $_POST['TransferToMobile']['number'])
+            ) {
                 $this->modelTransferToMobile->addError('number', Yii::t('zii', 'Number invalid, try again'));
             }
 
@@ -212,7 +210,6 @@ class TransferToMobileController extends Controller
             }
             Yii::app()->session['allowedAmount'] = $values;
             $amountDetails                       = 'Amount (Min: ' . $values[0] . ' BDT, Max: ' . $values[1] . ' BDT)';
-
         }
         if (count($methods)) {
             $this->render($view, array(
@@ -226,7 +223,6 @@ class TransferToMobileController extends Controller
             echo '</div>';
             exit;
         }
-
     }
 
     public function addInDataBase()
@@ -377,7 +373,7 @@ error_txt=Transaction successful';
 
             //check if agent have credit
 
-            $modelAgent = User::model()->findByPk($this->modelTransferToMobile->id_user);
+            $modelAgent = User::model()->findByPk((int) $this->modelTransferToMobile->id_user);
 
             if ($modelAgent->credit + $modelAgent->creditlimit < $this->cost) {
 
@@ -429,7 +425,6 @@ error_txt=Transaction successful';
 
         $user_cost = $cost - ($cost * ($user_profit / 100));
         echo $currency . ' ' . number_format($user_cost, 2);
-
     }
 
     public function confirmRefill()
@@ -468,12 +463,10 @@ error_txt=Transaction successful';
             $this->local_currency                 = $modelSendCreditRates->idProduct->currency_dest;
             $this->operator_name                  = $modelSendCreditRates->idProduct->operator_name;
             $this->modelTransferToMobile->product = $product = $modelSendCreditRates->idProduct->product;
-
         } else {
 
             $this->cost = $this->actionGetBuyingPriceDBService($_POST['TransferToMobile']['method'], $_POST['TransferToMobile']['amountValuesEUR'], $_POST['TransferToMobile']['amountValuesBDT']);
             $product    = 0;
-
         }
 
         $this->calculateCost($product);
@@ -493,7 +486,6 @@ error_txt=Transaction successful';
             } else {
                 $result = $this->sendActionTransferToMobile('topup', $product);
             }
-
         } else {
             $result = $this->sendActionBDService($this->modelTransferToMobile);
         }
@@ -502,7 +494,6 @@ error_txt=Transaction successful';
 
         $this->updateDataBase();
         exit;
-
     }
 
     public function checkResult($result)
@@ -514,7 +505,6 @@ error_txt=Transaction successful';
 
             if (preg_match("/Transaction successful/", $result[1])) {
                 $this->releaseCredit($result, '');
-
             } else {
                 echo '<div align=center id="container">';
                 echo '<font color=red>ERROR: ' . $result[1] . '</font><br><br>';
@@ -522,7 +512,6 @@ error_txt=Transaction successful';
                 echo '</div>';
                 exit;
             }
-
         } else {
 
             if (strlen($result) < 1) {
@@ -537,9 +526,7 @@ error_txt=Transaction successful';
                 exit;
             } elseif (preg_match("/SUCCESS/", strtoupper($result))) {
                 $this->releaseCredit($result, '');
-
             }
-
         }
     }
 
@@ -551,7 +538,8 @@ error_txt=Transaction successful';
         }
 
         if ($this->modelTransferToMobile->method == 'international' && $status != 'error') {
-            User::model()->updateByPk(Yii::app()->session['id_user'],
+            User::model()->updateByPk(
+                Yii::app()->session['id_user'],
                 array(
                     'credit' => new CDbExpression('credit - ' . $this->user_cost),
                 )
@@ -590,7 +578,6 @@ error_txt=Transaction successful';
             } else {
                 $description = 'Send Credit ' . $this->local_currency . ' ' . $this->modelTransferToMobile->product . ' - +' . $this->modelTransferToMobile->number . ' via ' . $this->operator_name . ' - EUR ' . $this->sell_price;
             }
-
         } else {
             if ($status == 'error') {
                 $description = 'PENDING: ';
@@ -668,7 +655,6 @@ error_txt=Transaction successful';
             if ($this->test == true) {
                 echo 'INSERT AGENT REFILL -> ' . $sql . "<br>";
             }
-
         }
     }
 
@@ -683,12 +669,14 @@ error_txt=Transaction successful';
 
             if (isset($this->config['global']['fm_transfer_to_username'])) {
 
-                $modelRefill = Refill::model()->find('description LIKE :key AND date BETWEEN :key1 AND  NOW() AND payment = 1 AND id_user = :key2',
+                $modelRefill = Refill::model()->find(
+                    'description LIKE :key AND date BETWEEN :key1 AND  NOW() AND payment = 1 AND id_user = :key2',
                     array(
                         ':key'  => "%" . $number . "%",
                         ':key1' => date('Y-m-d H:i', mktime(date('H'), date('i') - 10, date('s'), date('m'), date('d'), date('Y'))),
                         ':key2' => Yii::app()->session['id_user'],
-                    ));
+                    )
+                );
                 if (isset($modelRefill->id)) {
                     echo '<div align=center id="container">';
                     echo "<font color=red>You already send credit to this number. Wait minimal 10 minutes to new recharge</font>";
@@ -715,10 +703,12 @@ error_txt=Transaction successful';
                     //not receive Operator ID FROM API. API OFF LINE. GET operator from country_code
                     $numberFormate           = $_POST['TransferToMobile']['number'];
                     $numberFormate           = substr($numberFormate, 0, 2) == '00' ? substr($numberFormate, 2) : $numberFormate;
-                    $modelSendCreditProducts = SendCreditProducts::model()->findAll('country_code = SUBSTRING(:key,1,length(country_code)) AND status = 1',
+                    $modelSendCreditProducts = SendCreditProducts::model()->findAll(
+                        'country_code = SUBSTRING(:key,1,length(country_code)) AND status = 1',
                         array(
                             ':key' => $numberFormate,
-                        ));
+                        )
+                    );
                     $forceOperatorSelect = true;
                     // echo $modelSendCreditProducts[0]->id . ' ' . $modelSendCreditProducts[0]->country_code;
 
@@ -733,11 +723,13 @@ error_txt=Transaction successful';
                     exit;
                 }
 
-                $modelSendCreditProducts = SendCreditProducts::model()->findAll('status = 1 AND operator_name = :key AND country_code =:key1',
+                $modelSendCreditProducts = SendCreditProducts::model()->findAll(
+                    'status = 1 AND operator_name = :key AND country_code =:key1',
                     array(
                         ':key'  => $modelSendCreditProducts[0]->operator_name,
                         ':key1' => $modelSendCreditProducts[0]->country_code,
-                    ));
+                    )
+                );
 
                 $ids_products = array();
                 foreach ($modelSendCreditProducts as $key => $products) {
@@ -777,7 +769,6 @@ error_txt=Transaction successful';
                         Yii::app()->session['allowedAmount'] = explode('-', $product->product);
                     }
                     $i++;
-
                 }
 
                 Yii::app()->session['amounts']      = isset($forceOperatorSelect) ? array() : $values;
@@ -788,7 +779,6 @@ error_txt=Transaction successful';
                 $this->modelTransferToMobile->operator = isset($forceOperatorSelect) ? '' : $modelSendCreditProducts[0]->operator_name;
 
                 return $this->modelTransferToMobile;
-
             } else {
                 echo 'Service inactive';
             }
@@ -820,23 +810,22 @@ error_txt=Transaction successful';
         $values = array();
         $i      = 0;
 
-        ?>
-            <?php foreach ($modelSendCreditProducts as $key => $product): ?>
-                <label for="2" class="company__row" id="productLabel<?php echo $i ?>">
-                        <input type="radio"  id="productinput<?php echo $i ?>" name="amountValues" value="<?php echo $product->id ?>">
-                        <div  class="company__logo-container" onclick="handleChange1(<?php echo $i ?>,<?php echo count($modelSendCreditProducts) ?>);" id='product<?php echo $i ?>' >
-                            <?php echo '<font size=1px>' . $product->currency_dest . ' </font>' . $product->product . ' = <font size=1px>' . $product->currency_orig . ' </font>' . $modelSendCreditRates[$i]->sell_price ?>
+?>
+        <?php foreach ($modelSendCreditProducts as $key => $product): ?>
+            <label for="2" class="company__row" id="productLabel<?php echo $i ?>">
+                <input type="radio" id="productinput<?php echo $i ?>" name="amountValues" value="<?php echo $product->id ?>">
+                <div class="company__logo-container" onclick="handleChange1(<?php echo $i ?>,<?php echo count($modelSendCreditProducts) ?>);" id='product<?php echo $i ?>'>
+                    <?php echo '<font size=1px>' . $product->currency_dest . ' </font>' . $product->product . ' = <font size=1px>' . $product->currency_orig . ' </font>' . $modelSendCreditRates[$i]->sell_price ?>
 
-                            </div>
-                    </label>
-                    <?php $i++;?>
-            <?php endforeach;?>
+                </div>
+            </label>
+            <?php $i++; ?>
+        <?php endforeach; ?>
 
-        <?php
+<?php
 
         Yii::app()->session['amounts']    = $values;
         Yii::app()->session['operatorId'] = $operatorId;
-
     }
 
     public function actionGetBuyingPriceDBService($method = '', $valueAmoutEUR = '', $valueAmoutBDT = '')
@@ -889,7 +878,6 @@ error_txt=Transaction successful';
         } else {
             return $amount;
         }
-
     }
 
     public function actionConvertCurrency()
@@ -968,7 +956,6 @@ error_txt=Transaction successful';
             ));
 
             echo $amount = number_format(($amountBDT * $product->wholesale_price) + $modelSendCreditRates->sell_price, 2);
-
         }
     }
 

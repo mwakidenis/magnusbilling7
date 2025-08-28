@@ -577,11 +577,16 @@ class CalcAgi
         $sql = "SELECT * FROM pkg_did WHERE did = '" . $MAGNUS->CallerID . "' AND description != ''";
         $agi->verbose($sql, 25);
         $modelDID = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
-
         if (isset($modelDID->id)) {
             $sql = "SELECT id, id AS id_trunk FROM pkg_trunk WHERE trunkcode = '" . $modelDID->description . "'";
             $agi->verbose($sql, 25);
-            $modelTrunks = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
+            $modelTrunksDID = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
+        }
+
+
+        if (isset($modelTrunksDID[0]->id)) {
+            $modelTrunks = $modelTrunksDID;
+            $agi->verbose(print_r($modelTrunks, true), 25);
         } else {
 
             if ($this->tariffObj[0]['trunk_group_type'] == 1) {

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -59,7 +60,6 @@ class TransferPaymentController extends Controller
         $this->url      = 'https://fm.transfer-to.com/cgi-bin/shop/topup?';
 
         $this->modelTransferToMobile = TransferToMobile::model()->findByPk((int) Yii::app()->session['id_user']);
-
     }
 
     public function actionIndex($asJson = true, $condition = null)
@@ -68,7 +68,7 @@ class TransferPaymentController extends Controller
         $this->modelTransferToMobile->method = "Payment";
 
         //select country
-        if ( ! isset($_POST['TransferToMobile']['country'])) {
+        if (! isset($_POST['TransferToMobile']['country'])) {
 
             $this->render('selectCountry', [
                 'modelTransferToMobile' => $this->modelTransferToMobile,
@@ -77,7 +77,7 @@ class TransferPaymentController extends Controller
             return;
         }
         //select type
-        if ( ! isset($_POST['TransferToMobile']['type'])) {
+        if (! isset($_POST['TransferToMobile']['type'])) {
 
             $this->modelTransferToMobile->country = $_POST['TransferToMobile']['country'];
             $types                                = [];
@@ -151,7 +151,7 @@ class TransferPaymentController extends Controller
         }
 
         //select amount
-        if ( ! isset($_POST['TransferToMobile']['creationdate'])) {
+        if (! isset($_POST['TransferToMobile']['creationdate'])) {
 
             $this->modelTransferToMobile->country      = $_POST['TransferToMobile']['country'];
             $this->modelTransferToMobile->type         = $_POST['TransferToMobile']['type'];
@@ -167,7 +167,7 @@ class TransferPaymentController extends Controller
                 ],
             ]);
 
-            if ( ! isset($modelSendCreditProducts[0]->product)) {
+            if (! isset($modelSendCreditProducts[0]->product)) {
                 exit('No products found');
             }
 
@@ -219,10 +219,9 @@ class TransferPaymentController extends Controller
 
                 $this->modelTransferToMobile->addError('zipcode', Yii::t('zii', 'Distribution code required'));
             }
-
         }
 
-        if ( ! is_numeric($_POST['TransferToMobile']['bill_amount']) || $_POST['TransferToMobile']['bill_amount'] < 1) {
+        if (! is_numeric($_POST['TransferToMobile']['bill_amount']) || $_POST['TransferToMobile']['bill_amount'] < 1) {
             $this->modelTransferToMobile->addError('bill_amount', Yii::t('zii', 'Bill amount need be numeric > 1'));
         }
 
@@ -236,14 +235,13 @@ class TransferPaymentController extends Controller
             return;
         }
 
-        if ( ! isset($_POST['TransferToMobile']['confirmed'])) {
+        if (! isset($_POST['TransferToMobile']['confirmed'])) {
             $this->render('confirmBill', [
                 'modelTransferToMobile' => $this->modelTransferToMobile,
             ]);
             return;
         }
         $this->confirmRefillBill();
-
     }
 
     public function prepaid_electricity()
@@ -254,7 +252,7 @@ class TransferPaymentController extends Controller
         }
 
         //select amount
-        if ( ! isset($_POST['TransferToMobile']['amountValuesBDT'])) {
+        if (! isset($_POST['TransferToMobile']['amountValuesBDT'])) {
 
             $this->modelTransferToMobile->country = $_POST['TransferToMobile']['country'];
             $this->modelTransferToMobile->type    = $_POST['TransferToMobile']['type'];
@@ -294,7 +292,7 @@ class TransferPaymentController extends Controller
         }
 
         //select meter
-        if ( ! isset($_POST['TransferToMobile']['meter'])) {
+        if (! isset($_POST['TransferToMobile']['meter'])) {
             $this->modelTransferToMobile->country         = $_POST['TransferToMobile']['country'];
             $this->modelTransferToMobile->type            = $_POST['TransferToMobile']['type'];
             $this->modelTransferToMobile->amountValues    = $_POST['TransferToMobile']['amountValues'];
@@ -308,7 +306,7 @@ class TransferPaymentController extends Controller
         }
 
         //select meter
-        if ( ! isset($_POST['TransferToMobile']['number'])) {
+        if (! isset($_POST['TransferToMobile']['number'])) {
 
             $this->modelTransferToMobile->country         = $_POST['TransferToMobile']['country'];
             $this->modelTransferToMobile->type            = $_POST['TransferToMobile']['type'];
@@ -330,14 +328,13 @@ class TransferPaymentController extends Controller
         $this->modelTransferToMobile->meter           = $_POST['TransferToMobile']['meter'];
         $this->modelTransferToMobile->number          = $_POST['TransferToMobile']['number'];
 
-        if ( ! isset($_POST['TransferToMobile']['confirmed'])) {
+        if (! isset($_POST['TransferToMobile']['confirmed'])) {
             $this->render('confirmPre', [
                 'modelTransferToMobile' => $this->modelTransferToMobile,
             ]);
             return;
         }
         $this->confirmRefillPre();
-
     }
 
     public function confirmRefillBill()
@@ -353,7 +350,7 @@ class TransferPaymentController extends Controller
             ],
         ]);
 
-        if ( ! isset($modelSendCreditRates->id)) {
+        if (! isset($modelSendCreditRates->id)) {
 
             echo '<div align=center id="container">';
             echo Yii::app()->session['id_user'] . ' ' . $product . ' ' . Yii::app()->session['operatorId'] . "<br>";
@@ -379,7 +376,6 @@ class TransferPaymentController extends Controller
 
         $this->updateDataBase();
         exit;
-
     }
 
     public function confirmRefillPre()
@@ -406,7 +402,7 @@ class TransferPaymentController extends Controller
             ],
         ]);
 
-        if ( ! isset($modelSendCreditRates->id)) {
+        if (! isset($modelSendCreditRates->id)) {
 
             echo '<div align=center id="container">';
             echo Yii::app()->session['id_user'] . ' ' . $product . ' ' . Yii::app()->session['operatorId'] . "<br>";
@@ -424,7 +420,7 @@ class TransferPaymentController extends Controller
         $this->operator_name                  = $modelSendCreditRates->idProduct->operator_name;
         $this->modelTransferToMobile->product = $product = $modelSendCreditRates->idProduct->product;
 
-        if ( ! preg_match('/-/', $modelSendCreditRates->idProduct->product)) {
+        if (! preg_match('/-/', $modelSendCreditRates->idProduct->product)) {
             Yii::app()->session['is_interval'] = false;
         }
 
@@ -438,7 +434,6 @@ class TransferPaymentController extends Controller
 
         $this->updateDataBase();
         exit;
-
     }
 
     public function getAmountBill()
@@ -448,9 +443,10 @@ class TransferPaymentController extends Controller
             'country = :key AND status = 1 AND type = "payment" AND product LIKE "%-%" AND operator_name LIKE "Bill%"',
             [
                 ':key' => $this->modelTransferToMobile->country,
-            ]);
+            ]
+        );
 
-        if ( ! isset($modelSendCreditProducts[0])) {
+        if (! isset($modelSendCreditProducts[0])) {
 
             echo '<div align=center id="container">';
             echo "<font color=red>ERROR. No exist product to this number. Contact admin</font><br><br>";
@@ -472,7 +468,7 @@ class TransferPaymentController extends Controller
 
         $modelSendCreditRates = SendCreditRates::model()->findAll($criteria);
 
-        if ( ! isset($modelSendCreditRates[0])) {
+        if (! isset($modelSendCreditRates[0])) {
             exit('Before send credit, you need add your sell price');
         }
 
@@ -491,21 +487,19 @@ class TransferPaymentController extends Controller
             Yii::app()->session['allowedAmount'] = explode('-', $product->product);
 
             $i++;
-
         }
 
         Yii::app()->session['ids_products'] = $ids_products;
 
         $this->modelTransferToMobile->country  = $modelSendCreditProducts[0]->country;
         $this->modelTransferToMobile->operator = $modelSendCreditProducts[0]->operator_name;
-
     }
 
     public function getAmount()
     {
         $modelSendCreditProducts = SendCreditProducts::model()->findAll('country = :key AND status = 1 AND type = "payment"', [':key' => $this->modelTransferToMobile->country]);
 
-        if ( ! isset($modelSendCreditProducts[0])) {
+        if (! isset($modelSendCreditProducts[0])) {
 
             echo '<div align=center id="container">';
             echo "<font color=red>ERROR. No exist product to this number. Contact admin</font><br><br>";
@@ -527,7 +521,7 @@ class TransferPaymentController extends Controller
 
         $modelSendCreditRates = SendCreditRates::model()->findAll($criteria);
 
-        if ( ! isset($modelSendCreditRates[0])) {
+        if (! isset($modelSendCreditRates[0])) {
             exit('Before send credit, you need add your sell price');
         }
 
@@ -541,7 +535,6 @@ class TransferPaymentController extends Controller
             if (is_numeric($product->product)) {
 
                 $values[trim($product->id)] = '<font size=1px>' . $product->currency_dest . '</font> ' . trim($product->product) . ' = <font size=1px>' . $product->currency_orig . '</font> ' . number_format(trim($modelSendCreditRates[$i]->sell_price), 2);
-
             } else {
                 Yii::app()->session['is_interval']                 = true;
                 Yii::app()->session['interval_currency']           = $product->currency_dest;
@@ -552,7 +545,6 @@ class TransferPaymentController extends Controller
                 Yii::app()->session['allowedAmount'] = explode('-', $product->product);
             }
             $i++;
-
         }
 
         Yii::app()->session['amounts']      = $values;
@@ -560,7 +552,6 @@ class TransferPaymentController extends Controller
 
         $this->modelTransferToMobile->country  = $modelSendCreditProducts[0]->country;
         $this->modelTransferToMobile->operator = $modelSendCreditProducts[0]->operator_name;
-
     }
 
     public function addInDataBase()
@@ -634,7 +625,7 @@ class TransferPaymentController extends Controller
 
             //check if agent have credit
 
-            $modelAgent = User::model()->findByPk($this->modelTransferToMobile->id_user);
+            $modelAgent = User::model()->findByPk((int) $this->modelTransferToMobile->id_user);
 
             if ($modelAgent->credit + $modelAgent->creditlimit < $this->cost) {
 
@@ -671,7 +662,6 @@ class TransferPaymentController extends Controller
 
             $user_cost = $cost - ($cost * ($user_profit / 100));
             echo $currency . ' ' . number_format($user_cost, 2);
-
         } else {
             $modelSendCreditProducts = SendCreditProducts::model()->findByPk((int) $_SESSION['interval_product_id']);
 
@@ -680,7 +670,6 @@ class TransferPaymentController extends Controller
             $user_cost = $cost - ($cost * ($user_profit / 100));
             echo $currency . ' ' . number_format($user_cost, 2);
         }
-
     }
 
     public function actionGetBuyingPriceBill()
@@ -696,7 +685,6 @@ class TransferPaymentController extends Controller
 
         $user_cost = $cost - ($cost * ($user_profit / 100));
         echo $currency . ' ' . number_format($user_cost, 2);
-
     }
 
     public function checkResult($result)
@@ -711,7 +699,6 @@ class TransferPaymentController extends Controller
             echo '</div>';
             exit;
         }
-
     }
 
     public function releaseCredit($result, $status)
@@ -750,7 +737,6 @@ class TransferPaymentController extends Controller
             $this->received_amout = $this->modelTransferToMobile->amountValuesBDT;
             //Send Credit BDT 150 to 01630593593 via flexiload at 2.25"
             $description .= 'Send Credit ' . $this->local_currency . ' ' . $this->modelTransferToMobile->amountValuesBDT . ' - ' . $this->modelTransferToMobile->number . '- meter no. ' . $_POST['TransferToMobile']['meter'] . ' via ' . $_POST['TransferToMobile']['type'] . ' ' . $_POST['TransferToMobile']['country'] . ' - EUR ' . number_format($this->sell_price, 2);
-
         } else {
             $this->received_amout = $this->modelTransferToMobile->bill_amount;
             $description .= 'Send Credit ' . $this->local_currency . ' ' . $this->modelTransferToMobile->bill_amount . ' - ' . $this->modelTransferToMobile->phone . '- bill no. ' . $_POST['TransferToMobile']['number'] . ' - date ' . $_POST['TransferToMobile']['creationdate'] . ' via ' . $_POST['TransferToMobile']['type'] . ' ' . $_POST['TransferToMobile']['country'] . ' - EUR ' . number_format($this->sell_price, 2);
@@ -758,7 +744,8 @@ class TransferPaymentController extends Controller
         //echo "description = $description <br>";
         //echo "user_cost = $this->user_cost <br        // exit;
 
-        User::model()->updateByPk(Yii::app()->session['id_user'],
+        User::model()->updateByPk(
+            Yii::app()->session['id_user'],
             [
                 'credit' => new CDbExpression('credit - ' . $this->user_cost),
             ]
@@ -789,9 +776,10 @@ class TransferPaymentController extends Controller
 
         if ($this->modelTransferToMobile->id_user > 1) {
 
-            $modelAgentOld = User::model()->findByPk($this->modelTransferToMobile->id_user);
+            $modelAgentOld = User::model()->findByPk((int) $this->modelTransferToMobile->id_user);
 
-            User::model()->updateByPk($this->modelTransferToMobile->id_user,
+            User::model()->updateByPk(
+                $this->modelTransferToMobile->id_user,
                 [
                     'credit' => new CDbExpression('credit - ' . $this->agent_cost),
                 ]
@@ -815,7 +803,6 @@ class TransferPaymentController extends Controller
             if ($this->test == true) {
                 echo 'INSERT AGENT REFILL -> ' . $sql . "<br>";
             }
-
         }
     }
 
@@ -827,11 +814,13 @@ class TransferPaymentController extends Controller
 
         $operator_name = isset($_GET['type']) ? $_GET['type'] : 'Prepaid';
 
-        $modelSendCreditProducts = SendCreditProducts::model()->findAll('country = :key AND status = 1 AND type = "payment" AND product LIKE "%-%" AND operator_name LIKE :key1',
+        $modelSendCreditProducts = SendCreditProducts::model()->findAll(
+            'country = :key AND status = 1 AND type = "payment" AND product LIKE "%-%" AND operator_name LIKE :key1',
             [
                 ':key'  => $country,
                 ':key1' => $operator_name . '%',
-            ]);
+            ]
+        );
 
         if ($_GET['currency'] == 'EUR') {
 
@@ -854,7 +843,7 @@ class TransferPaymentController extends Controller
                 }
             }
 
-            if ( ! isset($product->product)) {
+            if (! isset($product->product)) {
                 exit('invalid');
             }
 
@@ -885,7 +874,7 @@ class TransferPaymentController extends Controller
                 }
             }
 
-            if ( ! isset($product->product)) {
+            if (! isset($product->product)) {
                 exit('invalid');
             }
 
@@ -925,5 +914,4 @@ class TransferPaymentController extends Controller
         Yii::app()->session['product_id'] = $_GET['id'];
         echo $modelSendCreditProducts->info;
     }
-
 }

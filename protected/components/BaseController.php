@@ -84,6 +84,45 @@ class BaseController extends CController
     public $addInCondition = [];
     public function init()
     {
+
+
+        $modelLogUsers = LogUsers::model()->count(
+            'ip = :key1 AND description LIKE :key2',
+            [
+                ':key1' => $_SERVER['REMOTE_ADDR'],
+                ':key2' => 'Trying SQL inject%',
+            ]
+        );
+
+
+        if ($modelLogUsers > 2) {
+            Yii::log($this->controllerName, 'error');
+            Yii::log(print_r($_SERVER, true), 'error');
+            Yii::log(print_r($_REQUEST, true), 'error');
+            Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
+            Yii::app()->session->clear();
+            Yii::app()->session->destroy();
+
+            $info    = 'USER BANNED BECAUSE TRY Trying SQL inject, code:';
+            MagnusLog::insertLOG(2, $info);
+
+
+            $modelFirewall = new Firewall();
+            $modelFirewall->ip = $_SERVER['REMOTE_ADDR'];
+            $modelFirewall->action = 1;
+            $modelFirewall->date = date('Y-m-d H:i:s');
+            $modelFirewall->description = 'USER BANNED BECAUSE TRY Trying SQL inject';
+            $modelFirewall->jail = 'ip-blacklist';
+            try {
+                $modelFirewall->save();
+             } catch (Exception $e) {
+                
+            }
+            exit;
+        }
+
+        $this->controllerName = Yii::app()->controller->id;
+
         Yii::app()->clientScript->registerCssFile(Yii::app()->baseUrl . '/resources/init.css');
 
         SqlInject::sanitize($this->getAttributesRequest());
@@ -278,17 +317,20 @@ class BaseController extends CController
     public function setStart($value)
     {
         $this->start = isset($value[$this->nameParamStart]) ? $value[$this->nameParamStart] : -1;
+        SqlInject::sanitize($this->start);
     }
 
     public function setLimit($value)
     {
         $limit       = isset($value[$this->nameParamLimit]) ? $value[$this->nameParamLimit] : -1;
         $this->limit = (! is_null($this->limit) && strlen($this->filter) < 2 && isset($this->limit)) ? $this->limit : $limit;
+        SqlInject::sanitize($this->limit);
     }
 
     public function setSort()
     {
         $this->sort = isset($_GET[$this->nameParamSort]) ? $_GET[$this->nameParamSort] : $this->attributeOrder;
+        SqlInject::sanitize($this->sort);
     }
 
     public function setOrder()
@@ -303,6 +345,11 @@ class BaseController extends CController
 
     public function setfilter($value)
     {
+
+        if (isset($_GET['filter'])) {
+            SqlInject::sanitize($_GET['filter']);
+        }
+
         # recebe os parametros para o filtro
         $filter   = isset($_GET['filter']) ? json_decode($_GET['filter']) : null;
         $filterIn = isset($_GET['filterIn']) ? json_decode($_GET['filterIn']) : null;
@@ -338,6 +385,10 @@ class BaseController extends CController
             exit;
         }
 
+        SqlInject::sanitize($this->select);
+        SqlInject::sanitize($this->join);
+        SqlInject::sanitize($this->filter);
+
         $criteria = new CDbCriteria();
         $criteria->addCondition($this->filter);
 
@@ -362,6 +413,10 @@ class BaseController extends CController
 
     public function readCountRecord()
     {
+
+        SqlInject::sanitize($this->select);
+        SqlInject::sanitize($this->join);
+        SqlInject::sanitize($this->filter);
 
         if (preg_match('/pkg_cdr/', $this->abstractModel->tableName()) && $this->config['global']['remove_count_cdr'] == 1) {
             $sql    = "SHOW TABLE STATUS LIKE  '" . $this->abstractModel->tableName() . "'";
@@ -443,10 +498,13 @@ class BaseController extends CController
     private function showAdminLog()
     {
         if (Yii::app()->session['isAdmin'] == true && isset($_GET['log'])) {
-            echo '<pre>';
-            print_r($this->paramsFilter);
 
-            echo $sql = "SELECT $this->select FROM  " . $this->abstractModel->tableName() . " t $this->join WHERE $this->filter GROUP BY $this->group LIMIT $this->limit";
+            SqlInject::sanitize($this->select);
+            SqlInject::sanitize($this->join);
+            SqlInject::sanitize($this->filter);
+            SqlInject::sanitize($this->group);
+            SqlInject::sanitize($this->limit);
+            $sql = "SELECT $this->select FROM  " . $this->abstractModel->tableName() . " t $this->join WHERE $this->filter GROUP BY $this->group LIMIT $this->limit";
             try {
                 $command = Yii::app()->db->createCommand($sql);
                 if (is_array($this->paramsFilter)) {
@@ -521,6 +579,7 @@ class BaseController extends CController
 
         $module = $this->instanceModel->getModule();
 
+
         $this->isNewRecord =  ! isset($values[$namePk]) || (is_array($values[$namePk]) || $values[$namePk] > 0)
             ? false : true;
 
@@ -529,6 +588,18 @@ class BaseController extends CController
             && is_array($values[$namePk])
             || (isset($_POST['filter']) && strlen($_POST['filter']) > 0)
             ? true : false;
+
+
+        if ($this->isUpdateAll && Yii::app()->session['isClient']) {
+            echo json_encode([
+                'rows'  => [],
+                'count' => 0,
+                'sum'   => ' ',
+                'errors'   =>  CHtml::encode('You cant update all')
+            ]);
+            exit;
+        }
+
 
         if (! $this->isUpdateAll) {
             $values = $this->beforeSave($values);
@@ -563,6 +634,7 @@ class BaseController extends CController
         //end updateAll
 
         $id    = $values[$namePk];
+
         $model = $id ? $this->loadModel($id, $this->abstractModel) : $this->instanceModel;
 
         if ($model == $this->msgRecordNotFound) {
@@ -570,7 +642,7 @@ class BaseController extends CController
             $this->nameMsg = $this->msgRecordNotFound;
         } else {
             if (! $this->isNewRecord && Yii::app()->session['isClient'] && preg_match('/pkg_phonenumber/', $this->abstractModel->tableName())) {
-                $modelCheck = $this->abstractModel->findByPk($values[$namePk]);
+                $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
 
                 if ($modelCheck->idPhonebook->idUser->id != Yii::app()->session['id_user']) {
                     exit('try edit invalid id');
@@ -759,6 +831,20 @@ class BaseController extends CController
 
     public function saveGetNewRecord($namePk, $id, $filter = '')
     {
+
+        if (!is_numeric($id)) {
+            $info    = 'Trying SQL inject, saveGetNewRecord: ' . print_r($values, true) . '. Controller => ' . Yii::app()->controller->id;
+            $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
+            MagnusLog::insertLOG(2, $info);
+            echo json_encode([
+                'rows'  => [],
+                'count' => 0,
+                'sum'   => [],
+                'errors'   =>  ''
+            ]);
+            exit;
+        }
+
         $newRecord = $this->abstractModel->findAll([
             'select'    => $this->select,
             'join'      => $this->join,
@@ -898,10 +984,18 @@ class BaseController extends CController
         $this->convertRelationFilter();
         $header = '';
         foreach ($columns as $key => $value) {
+
+            SqlInject::sanitize($value['header']);
+
             $header .= '"' . ($value['header']) . '",';
         }
 
+        SqlInject::sanitize($this->join);
+        SqlInject::sanitize($this->filter);
+        SqlInject::sanitize($header);
+
         $sql = "SELECT " . substr($header, 0, -1) . " UNION ALL SELECT " . $this->getColumnsFromReport($columns) . " FROM " . $this->abstractModel->tableName() . " t $this->join WHERE $this->filter";
+
 
         $command = Yii::app()->db->createCommand($sql);
         if ((is_array($this->paramsFilter) || is_object($this->paramsFilter)) && count($this->paramsFilter)) {
@@ -974,7 +1068,8 @@ class BaseController extends CController
             if (count($this->relationFilter)) {
 
                 $this->convertRelationFilter();
-
+                SqlInject::sanitize($this->join);
+                SqlInject::sanitize($this->filter);
                 $sql     = 'DELETE t FROM ' . $this->abstractModel->tableName() . ' t ' . $this->join . ' WHERE ' . $this->filter;
                 $command = Yii::app()->db->createCommand($sql);
                 foreach ($this->paramsFilter as $key => $value) {
@@ -993,6 +1088,10 @@ class BaseController extends CController
                     $errors        = $this->getErrorMySql($e);
                 }
             } else {
+
+                SqlInject::sanitize($this->join);
+                SqlInject::sanitize($this->filter);
+
                 $criteria = new CDbCriteria([
                     'condition' => $this->filter,
                     'params'    => $this->paramsFilter,
@@ -1049,10 +1148,10 @@ class BaseController extends CController
 
                     if (Yii::app()->session['isClient']) {
 
-                        $modelCheck = $this->abstractModel->findByPk($values[$namePk]);
+                        $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
 
                         if (isset($modelCheck->id_user)) {
-                            $modelUser = User::model()->findByPk($modelCheck->id_user);
+                            $modelUser = User::model()->findByPk((int) $modelCheck->id_user);
                             if (isset($modelUser->id) && $modelUser->id != Yii::app()->session['id_user']) {
                                 echo json_encode([
                                     $this->nameSuccess   => false,
@@ -1359,7 +1458,57 @@ class BaseController extends CController
             }
 
             $type  = $f->type;
-            $field = $f->field;
+            $field = trim($f->field);
+
+            $cls = $this->abstractModel;
+            $allowedCols = array_keys($cls::model()->getMetaData()->columns);
+
+            $field = trim($field);
+
+            if (preg_match("/^id[A-Z].*\./", $field)) {
+
+                $dataCheck = explode('.', $field);
+                $modelCheck = $this->abstractModel::model()->getMetaData()->relations[$dataCheck[0]]->className;
+                $checkModel = new $modelCheck;
+                $checkbstractModel = $checkModel::model();
+                $allowedCols = array_keys($checkbstractModel::model()->getMetaData()->columns);
+                if (!in_array($dataCheck[1], $allowedCols, true)) {
+                    Yii::log($this->controllerName, 'error');
+                    Yii::log(print_r($_SERVER, true), 'error');
+                    Yii::log(print_r($_REQUEST, true), 'error');
+                    Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
+
+                    $info    = 'Trying SQL inject, code: Field - ' . $field . ' . Controller => ' . Yii::app()->controller->id;
+                    $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
+                    MagnusLog::insertLOG(2, $info);
+                    echo json_encode([
+                        'rows'  => [],
+                        'count' => 0,
+                        'sum'   => [],
+                        'errors'   =>  ''
+                    ]);
+                    exit;
+                }
+            } else if (!in_array($field, $allowedCols, true)) {
+                Yii::log($this->controllerName, 'error');
+                Yii::log(print_r($_SERVER, true), 'error');
+                Yii::log(print_r($_REQUEST, true), 'error');
+                Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
+
+                $info    = 'Trying SQL inject, code: Field - ' . $field . ' . Controller => ' . Yii::app()->controller->id;
+                $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
+                MagnusLog::insertLOG(2, $info);
+                echo json_encode([
+                    'rows'  => [],
+                    'count' => 0,
+                    'sum'   => [],
+                    'errors'   =>  ''
+                ]);
+                exit;
+            }
+
+
+
 
             if ($this->actionName != 'destroy' && ! preg_match("/^id[A-Z]/", $field)) {
 
@@ -1373,6 +1522,9 @@ class BaseController extends CController
             }
 
             $value     = isset($f->value) ? $f->value : new CDbExpression('NULL');
+
+            SqlInject::sanitize($value);
+            SqlInject::sanitize($field);
             $paramName = "p$key";
 
             if (isset($f->data->comparison)) {
@@ -1382,6 +1534,46 @@ class BaseController extends CController
             } else {
                 $comparison = null;
             }
+
+            if (strlen($comparison) > 3) {
+                Yii::log($this->controllerName, 'error');
+                Yii::log(print_r($_SERVER, true), 'error');
+                Yii::log(print_r($_REQUEST, true), 'error');
+                Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
+
+                $info    = 'Trying SQL inject, comparison = ' . $comparison . '. Controller => ' . Yii::app()->controller->id;
+                $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
+                MagnusLog::insertLOG(2, $info);
+                echo json_encode([
+                    'rows'  => [],
+                    'count' => 0,
+                    'sum'   => [],
+                    'errors'   =>  ''
+                ]);
+                exit;
+            }
+
+            static $allowed = ['date', 'string', 'boolean', 'numeric', 'list', 'notlist'];
+
+
+            if (!in_array($type, $allowed, true)) {
+                Yii::log($this->controllerName, 'error');
+                Yii::log(print_r($_SERVER, true), 'error');
+                Yii::log(print_r($_REQUEST, true), 'error');
+                Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
+
+                $info    = 'Trying SQL inject, code: type = ' . $type . '. Controller => ' . Yii::app()->controller->id;
+                $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
+                MagnusLog::insertLOG(2, $info);
+                echo json_encode([
+                    'rows'  => [],
+                    'count' => 0,
+                    'sum'   => [],
+                    'errors'   =>  ''
+                ]);
+                exit;
+            }
+
             switch ($type) {
                 case 'date':
                     switch ($comparison) {
@@ -1737,6 +1929,9 @@ class BaseController extends CController
 
         foreach ($columns as $column) {
             $fieldName = $column['dataIndex'];
+
+            SqlInject::sanitize($fieldName);
+
             if (is_array($this->fieldsFkReport) && array_key_exists($fieldName, $this->fieldsFkReport)) {
                 $fk          = $this->fieldsFkReport[$fieldName];
                 $table       = $fk['table'];
@@ -1956,19 +2151,6 @@ class BaseController extends CController
         ]);
     }
 
-    public function upload($fieldName, $folder, $fileName = null)
-    {
-        if (! file_exists($folder)) {
-            mkdir($folder, 0777, true);
-        }
-
-        $file     = CUploadedFile::getInstanceByName($fieldName);
-        $fileName = $fileName ? $fileName . '.' . $file->extensionName : $file->getName();
-        $path     = $folder . $fileName;
-        $success  = file_put_contents($path, base64_decode(file_get_contents($file->getTempName())));
-
-        return $success ? $path : false;
-    }
 
     public function remoteLogin($username, $password)
     {
@@ -2009,19 +2191,19 @@ class BaseController extends CController
     public function checkAgentPermission($values, $namePk)
     {
         if ($this->abstractModel->tableName() == 'pkg_user') {
-            $modelUser = User::model()->findByPk($values['id']);
+            $modelUser = User::model()->findByPk((int) $values['id']);
             $id_user   = $modelUser->id_user;
         } else if (preg_match('/pkg_plan/', $this->abstractModel->tableName())) {
-            $modelCheck = $this->abstractModel->findByPk($values[$namePk]);
+            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
             $id_user    = $modelCheck->idUser->id;
         } else if (preg_match('/pkg_rate_agent/', $this->abstractModel->tableName())) {
-            $modelCheck = $this->abstractModel->findByPk($values[$namePk]);
+            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
             $id_user    = $modelCheck->idPlan->idUser->id;
         } else if (preg_match('/pkg_offer/', $this->abstractModel->tableName())) {
-            $modelCheck = $this->abstractModel->findByPk($values[$namePk]);
+            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
             $id_user    = $modelCheck->idUser->id;
         } else {
-            $modelCheck = $this->abstractModel->findByPk($values[$namePk]);
+            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
             $id_user    = $modelCheck->idUser->id_user;
         }
 

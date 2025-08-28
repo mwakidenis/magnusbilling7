@@ -61,29 +61,52 @@ rm -rf /var/www/html/mbilling/doc
 rm -rf /var/www/html/mbilling/script
 rm -rf /var/www/html/mbilling/assets/*
 ## set default permissions 
+
+chown -R root:root /var/www/html/mbilling
+find /var/www/html/mbilling -type d -exec chmod 755 {} \;
+find /var/www/html/mbilling -type f -exec chmod 644 {} \;
+
+for d in protected/runtime assets tmp resources/reports resources/images; do
+  mkdir -p "/var/www/html/mbilling/$d"
+  chown -R asterisk:asterisk "/var/www/html/mbilling/$d"
+  find "/var/www/html/mbilling/$d" -type d -exec chmod 750 {} \;
+  find "/var/www/html/mbilling/$d" -type f -exec chmod 640 {} \;
+done
+
+for d in assets tmp protected/runtime resources/reports resources/images; do
+  cat > "/var/www/html/mbilling/$d/.htaccess" <<'EOF'
+<FilesMatch "\.(php|phtml|phar)$">
+  Require all denied
+</FilesMatch>
+# Se estiver usando mod_php, isto ajuda extra:
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+EOF
+done
+
+chmod +x /var/www/html/mbilling/protected/commands/*.sh
+chmod +x /var/www/html/mbilling/protected/commands/clear_memory
 touch /etc/asterisk/extensions_magnus_did.conf
 chown -R asterisk:asterisk /var/lib/php/session*
 chown -R asterisk:asterisk /var/spool/asterisk/outgoing/
 chown -R asterisk:asterisk /etc/asterisk
-chown -R asterisk:asterisk /var/www/html/mbilling
 chown -R asterisk:asterisk /var/lib/asterisk/moh/
 chown -R asterisk:asterisk /var/lib/asterisk/sounds/
 mkdir -p /usr/local/src/magnus
-rm -rf /var/www/html/mbilling/tmp
-mkdir -p /var/www/html/mbilling/tmp
-chown -R asterisk:asterisk /var/www/html/mbilling/tmp
 chown -R asterisk:asterisk /var/run/magnus/
 chown -R root:root /root
 chown -R mysql:mysql /var/lib/mysql
 chmod -R 1777 /tmp
 chmod -R 755 /usr/local/src/magnus
-chmod -R 555 /var/www/html/mbilling/
-chmod -R 700 /var/www/html/mbilling/resources/reports 
-chmod -R 774 /var/www/html/mbilling/protected/runtime/
-chmod 774 /var/www/html/mbilling/resources/ip.blacklist
-chmod -R 755 /var/www/html/mbilling/tmp
-chmod -R 700 /var/www/html/mbilling/assets
-chmod -R 700 /var/www/html/mbilling/resources/images
+
+
+rm -rf /var/www/html/mbilling/tmp
+mkdir -p /var/www/html/mbilling/tmp
+
 echo 'Options -Indexes
 Order Deny,Allow
 Deny from all
@@ -95,6 +118,15 @@ Deny from all
 chmod +x /var/www/html/mbilling/resources/asterisk/mbilling.php
 sed -i "s/AllowOverride None/AllowOverride All/" ${HTTP_CONFIG}
 systemctl reload ${SERVICE}
+
+
+sed -i.bak -E "s/^[[:space:]]*secure[-_]file[-_]priv[[:space:]]*=[[:space:]]*.*$/secure_file_priv = \/var\/lib\/mysql-files/" "$MYSQL_CONFIG"
+
+mkdir /var/lib/mysql-files
+chown root:root /var/lib/mysql-files
+chmod 755 /var/lib/mysql-files
+
+
 /var/www/html/mbilling/protected/commands/clear_memory
 if [[ -e /var/www/html/mbilling/resources/images/lock-screen-background.jpg ]]; then
 	for color in black blue gray orange purple red yellow green

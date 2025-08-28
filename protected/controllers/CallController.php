@@ -346,7 +346,7 @@ class CallController extends Controller
                 $id = $f->value[0];
             }
 
-            $modelCampaign = Campaign::model()->findByPk($id);
+            $modelCampaign = Campaign::model()->findByPk((int) $id);
             $nameCampaign  = $modelCampaign->name;
             $timeCampaign  = $modelCampaign->nb_callmade;
 
@@ -465,7 +465,7 @@ class CallController extends Controller
             $header[] =  $value['header'];
         }
 
-        if (preg_match('/echo|system|exec|touch|pass|cd |rm |curl|wget|assets|resources|mbilling|protected/', $header)) {
+        if (is_array('header') && preg_match('/echo|system|exec|touch|pass|cd |rm |curl|wget|assets|resources|mbilling|protected/', $header)) {
             $info    = 'Trying SQL inject, code: ' . $value . '. Controller => ' . Yii::app()->controller->id;
             $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
             MagnusLog::insertLOG('EDIT', $id_user, $_SERVER['REMOTE_ADDR'], $info);
@@ -484,16 +484,21 @@ class CallController extends Controller
         $offset = 0;
 
         header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="' . $fileName . '"');
+        header('Content-Disposition: attachment; filename="' . $fileName . '_' . date('Y-m-d') . '.csv"');
         header('Pragma: no-cache');
         header('Expires: 0');
+
 
         for (;;) {
             $sql     = "SELECT " . $this->getColumnsFromReport($columns) . " FROM " . $this->abstractModel->tableName() . " t $this->join WHERE $this->filter LIMIT :limit OFFSET :offset";
             $command = Yii::app()->db->createCommand($sql);
             $command->bindValue(":limit", $limit, PDO::PARAM_INT);
             $command->bindValue(":offset", $offset, PDO::PARAM_INT);
-
+            if ((is_array($this->paramsFilter) || is_object($this->paramsFilter)) && count($this->paramsFilter)) {
+                foreach ($this->paramsFilter as $key => $value) {
+                    $command->bindValue($key, $value, PDO::PARAM_STR);
+                }
+            }
             try {
                 $rows = $command->queryAll();
             } catch (Exception $e) {

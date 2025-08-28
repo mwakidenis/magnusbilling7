@@ -192,7 +192,7 @@ class DidController extends Controller
         }
         $priceDidTotal = 0;
         foreach ($ids as $key => $id) {
-            $modelDid = Did::model()->findByPk($id);
+            $modelDid = Did::model()->findByPk((int) $id);
 
             if ($modelDid->reserved == 1) {
                 echo json_encode([
@@ -222,7 +222,7 @@ class DidController extends Controller
         $id_user = $modelUser->id;
 
         foreach ($ids as $key => $id) {
-            $modelDid  = Did::model()->findByPk($id);
+            $modelDid  = Did::model()->findByPk((int) $id);
             $id_did    = $modelDid->id;
             $modelUser = $modelDid->idUser;
             $totalDid  = $modelDid->fixrate + $modelDid->connection_charge;
@@ -289,9 +289,9 @@ class DidController extends Controller
         $id_did  = isset($_POST['id']) ? json_decode($_POST['id']) : null;
         $id_user = isset($_POST['id_user']) ? json_decode($_POST['id_user']) : Yii::app()->session['id_user'];
 
-        $modelDid = Did::model()->findByPk($id_did);
+        $modelDid = Did::model()->findByPk((int) $id_did);
 
-        $modelUser = User::model()->findByPK($id_user);
+        $modelUser = User::model()->findByPk((int) $id_user);
 
         $totalDid = $modelDid->fixrate + $modelDid->connection_charge;
 
@@ -531,14 +531,14 @@ class DidController extends Controller
 
         if (is_array($values) && count($values) > 1) {
             foreach ($values as $key => $value) {
-                $modelDid = Did::model()->findByPK($value['id']);
+                $modelDid = Did::model()->findByPk((int) $value['id']);
                 if ($modelDid->reserved == 0) {
                     CallSummaryMonthDid::model()->deleteAll("id_did = :key", [':key' => $modelDid->id]);
                     DidUse::model()->deleteAll("id_did = :key", [':key' => $modelDid->id]);
                 }
             }
         } else {
-            $modelDid = Did::model()->findByPK($values['id']);
+            $modelDid = Did::model()->findByPk((int) $values['id']);
             if ($modelDid->reserved == 0) {
                 CallSummaryMonthDid::model()->deleteAll("id_did = :key", [':key' => $modelDid->id]);
                 DidUse::model()->deleteAll("id_did = :key", [':key' => $modelDid->id]);

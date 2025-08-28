@@ -235,7 +235,7 @@ query_cache_size        = 64M
 log_error = /var/log/mysql/error.log
 expire_logs_days  = 10
 max_binlog_size   = 1G
-secure-file-priv = ""
+secure_file_priv = /var/lib/mysql-files
 symbolic-links=0
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 tmp_table_size=128MB
@@ -245,8 +245,13 @@ open_files_limit=500000
 
 [mariadb]
 
-[mariadb-10.1]
 " > ${MYSQL_CONFIG}
+
+
+mkdir /var/lib/mysql-files
+chown root:root /var/lib/mysql-files
+chmod 755 /var/lib/mysql-files
+
 
 
 
@@ -568,7 +573,6 @@ allow=alaw
 allow=gsm
 rtcachefriends=yes
 srvlookup=yes
-useragent=MagnusBilling
 allowsubscribe = no
 alwaysauthreject=yes
 rtupdate=yes
@@ -689,8 +693,6 @@ echo '
 [Definition]
 failregex = .*Username and password combination is invalid - User.*IP: <HOST>
 ignoreregex =
-
-datepattern = ^%%Y/%%m/%%d:%%H:%%M:%%S
 ' > /etc/fail2ban/filter.d/mbilling_login.conf
 
 
@@ -743,13 +745,11 @@ bantime = 300
 
 [ip-blacklist]
 enabled   = true
-filter    = ip-blacklist
-logpath   = /var/www/html/mbilling/resources/ip.blacklist
 maxretry  = 0
 findtime  = 15552000
 bantime   = -1
 
-[ssh]
+[sshd]
 enabled=true
 
 [mbilling_ddos]
@@ -791,31 +791,46 @@ iptables -L -v
 php /var/www/html/mbilling/cron.php updatemysql
 
 
+chown -R root:root /var/www/html/mbilling
+find /var/www/html/mbilling -type d -exec chmod 755 {} \;
+find /var/www/html/mbilling -type f -exec chmod 644 {} \;
+
+for d in protected/runtime assets tmp resources/reports resources/images; do
+  mkdir -p "/var/www/html/mbilling/$d"
+  chown -R asterisk:asterisk "/var/www/html/mbilling/$d"
+  find "/var/www/html/mbilling/$d" -type d -exec chmod 750 {} \;
+  find "/var/www/html/mbilling/$d" -type f -exec chmod 640 {} \;
+done
+
+for d in assets tmp protected/runtime resources/reports resources/images; do
+  cat > "/var/www/html/mbilling/$d/.htaccess" <<'EOF'
+<FilesMatch "\.(php|phtml|phar)$">
+  Require all denied
+</FilesMatch>
+# Se estiver usando mod_php, isto ajuda extra:
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+EOF
+done
+chmod +x /var/www/html/mbilling/protected/commands/*.sh
+
 chown -R asterisk:asterisk /var/lib/php/session*
 chown -R asterisk:asterisk /var/spool/asterisk/outgoing/
 chown -R asterisk:asterisk /etc/asterisk
 chmod -R 1777 /tmp
-chmod -R 555 /var/www/html/mbilling/
-chmod -R 750 /var/www/html/mbilling/resources/reports 
-chmod -R 774 /var/www/html/mbilling/protected/runtime/
 mkdir -p /usr/local/src/magnus/monitor
 mkdir -p /usr/local/src/magnus/sounds
 mkdir -p /usr/local/src/magnus/backup
-
 mkdir -p /var/www/tmpmagnus
 chown -R asterisk:asterisk /var/www/tmpmagnus
 chmod -R 777 /var/www/tmpmagnus
-
 mv /usr/local/src/backup* /usr/local/src/magnus/backup
 chown -R asterisk:asterisk /usr/local/src/magnus/
 chmod -R 755 /usr/local/src/magnus/
-
-chmod 774 /var/www/html/mbilling/resources/ip.blacklist
-chmod -R 655 /var/www/html/mbilling/tmp
-chmod -R 750 /var/www/html/mbilling/resources/sounds
-chmod -R 770 /var/www/html/mbilling/resources/images
-chmod -R 755 /var/www/html/mbilling/assets/
-chown -R asterisk:asterisk /var/www/html/mbilling
 chmod +x /var/www/html/mbilling/resources/asterisk/mbilling.php
 chmod -R 100 /var/www/html/mbilling/resources/asterisk/
 chown -R asterisk:asterisk /var/lib/asterisk/moh/

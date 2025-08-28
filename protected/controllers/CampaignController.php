@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Campaign".
  *
@@ -65,10 +66,9 @@ class CampaignController extends Controller
                         'errors'  => ['frequency' => [Yii::t('zii', 'The call limit need be less than') . ' ', $this->config['global']['campaign_user_limit']]],
                     ]);
                     exit;
-
                 }
             } else {
-                $modelCampaign = Campaign::model()->findByPk($values['id']);
+                $modelCampaign = Campaign::model()->findByPk((int) $values['id']);
 
                 if ($values['frequency'] > $modelCampaign->max_frequency) {
 
@@ -132,7 +132,6 @@ class CampaignController extends Controller
             $uploadfile = $this->uploaddir . 'idCampaign_' . $model->id . '_2.' . $typefile;
             move_uploaded_file($_FILES["audio_2"]["tmp_name"], $uploadfile);
         }
-
     }
 
     public function setAttributesModels($attributes, $models)
@@ -144,7 +143,7 @@ class CampaignController extends Controller
                 $itemOption               = explode("|", $attributes[$i]['forward_number']);
                 $attributes[$i]['type_0'] = $itemOption[0];
 
-                if ( ! isset($itemOption[1])) {
+                if (! isset($itemOption[1])) {
                     continue;
                 }
                 $type = $itemOption[0];
@@ -156,7 +155,6 @@ class CampaignController extends Controller
                     if (isset($model->name)) {
                         $attributes[$i]['id_' . $type . '_0' . '_name'] = $model->name;
                     }
-
                 } elseif (preg_match("/number|group|custom|hangup/", $itemOption[0])) {
                     $attributes[$i]['extension_0'] = $itemOption[1];
                 }
@@ -176,7 +174,6 @@ class CampaignController extends Controller
                 if (isset($_POST['id_phonebook_array']) && strlen($value) > 0) {
                     $arrPost['id_phonebook'] = explode(",", $_POST['id_phonebook_array']);
                 }
-
             }
         }
 
@@ -282,7 +279,6 @@ class CampaignController extends Controller
                 $recorder      = new CSVActiveRecorder($array, $instanceModel, $additionalParams);
                 if ($recorder->save());
                 $errors = $recorder->getErrors();
-
             } else {
                 $errors = $interpreter->getErrors();
             }
@@ -293,7 +289,6 @@ class CampaignController extends Controller
             ]);
 
             exit;
-
         }
 
         if (isset($_POST['numbers']) && $_POST['numbers'] != '') {
@@ -312,7 +307,6 @@ class CampaignController extends Controller
             $this->nameSuccess => $this->success,
             $this->nameMsg     => $this->msg,
         ]);
-
     }
 
     public function actionTestCampaign()
@@ -338,7 +332,7 @@ class CampaignController extends Controller
 
         $modelCampaign = $this->abstractModel->findByPk((int) $id_campaign);
 
-        if ( ! isset($campaignResult->id)) {
+        if (! isset($campaignResult->id)) {
 
             if ($modelCampaign->status == 0) {
                 echo json_encode([
@@ -397,10 +391,12 @@ class CampaignController extends Controller
             }
 
             //get campaingphonebookes
-            $modelCampaignPhonebook = CampaignPhonebook::model()->findAll('id_campaign = :key',
-                [':key' => $id_campaign]);
+            $modelCampaignPhonebook = CampaignPhonebook::model()->findAll(
+                'id_campaign = :key',
+                [':key' => $id_campaign]
+            );
 
-            if ( ! isset($modelCampaignPhonebook->id)) {
+            if (! isset($modelCampaignPhonebook->id)) {
                 echo json_encode([
                     $this->nameSuccess => false,
                     $this->nameMsg     => 'Please select one o more phonebook',
@@ -418,7 +414,7 @@ class CampaignController extends Controller
             $criteria->addInCondition('id', $ids_phone_books);
             $modelPhoneBook = PhoneBook::model()->findAll($criteria);
 
-            if ( ! isset($modelPhoneBook[0])) {
+            if (! isset($modelPhoneBook[0])) {
                 echo json_encode([
                     $this->nameSuccess => false,
                     $this->nameMsg     => 'Campaign Not have phonebook',
@@ -432,7 +428,7 @@ class CampaignController extends Controller
             $criteria->params[':key'] = 1;
             $modelPhoneBook           = PhoneBook::model()->findAll($criteria);
 
-            if ( ! isset($modelPhoneBook[0])) {
+            if (! isset($modelPhoneBook[0])) {
                 echo json_encode([
                     $this->nameSuccess => false,
                     $this->nameMsg     => 'Campaign Not have phonebook',
@@ -447,7 +443,7 @@ class CampaignController extends Controller
             $criteria->params[':key'] = 1;
             $modelPhoneNumber         = PhoneNumber::model()->findAll($criteria);
 
-            if ( ! isset($modelPhoneNumber[0])) {
+            if (! isset($modelPhoneNumber[0])) {
                 echo json_encode([
                     $this->nameSuccess => false,
                     $this->nameMsg     => 'The phonebook not have numbers or not have active numbers',
@@ -462,7 +458,7 @@ class CampaignController extends Controller
                 $criteria->params[':key1'] = date('Y-m-d H:i:s');
                 $modelPhoneNumber          = PhoneNumber::model()->find($criteria);
 
-                if ( ! isset($modelPhoneNumber[0])) {
+                if (! isset($modelPhoneNumber[0])) {
                     echo json_encode([
                         $this->nameSuccess => false,
                         $this->nameMsg     => 'There are active numbers but the start time is in the future',
@@ -478,7 +474,6 @@ class CampaignController extends Controller
                 $this->nameMsg     => 'error',
             ]);
             exit;
-
         }
 
         if ($modelCampaign->type == 0) {
@@ -499,7 +494,7 @@ class CampaignController extends Controller
                 $modelRate = Rate::model()->find($criteria);
             }
 
-            if ( ! isset($modelRate->id)) {
+            if (! isset($modelRate->id)) {
                 echo json_encode([
                     $this->nameSuccess => false,
                     $this->nameMsg     => 'Not existe the prefix 999 to send SMS',
@@ -509,7 +504,7 @@ class CampaignController extends Controller
         } else {
             //verificar se exite audio
             Yii::log($this->uploaddir . 'idCampaign_' . $id_campaign . '.wav', 'info');
-            if ( ! file_exists($this->uploaddir . 'idCampaign_' . $id_campaign . '.wav') && ! file_exists($this->uploaddir . 'idCampaign_' . $id_campaign . '.gsm')) {
+            if (! file_exists($this->uploaddir . 'idCampaign_' . $id_campaign . '.wav') && ! file_exists($this->uploaddir . 'idCampaign_' . $id_campaign . '.gsm')) {
                 echo json_encode([
                     $this->nameSuccess => false,
                     $this->nameMsg     => 'Not existe audio to this Campaign',

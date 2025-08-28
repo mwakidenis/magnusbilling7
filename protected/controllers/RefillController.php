@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Refill".
  *
@@ -65,8 +66,8 @@ class RefillController extends Controller
 
     public function beforeSave($values)
     {
-        $modelRefill = Refill::model()->findByPk($values['id']);
-        if ( ! $this->isNewRecord) {
+        $modelRefill = Refill::model()->findByPk((int) $values['id']);
+        if (! $this->isNewRecord) {
 
             if (isset($values['payment']) && (preg_match('/^PENDING\:/', $modelRefill->description) && $values['payment'] == 1 && $modelRefill->payment == 0)) {
                 $this->releaseSendCreditBDService($values, $modelRefill);
@@ -85,11 +86,12 @@ class RefillController extends Controller
                 exit;
             }
             //get the total credit betewen agent users
-            $modelUser = User::model()->find([
-                'select'    => 'SUM(credit) AS credit',
-                'condition' => 'id_user = :key',
-                'params'    => [':key' => Yii::app()->session['id_user']],
-            ]
+            $modelUser = User::model()->find(
+                [
+                    'select'    => 'SUM(credit) AS credit',
+                    'condition' => 'id_user = :key',
+                    'params'    => [':key' => Yii::app()->session['id_user']],
+                ]
             );
 
             if (isset($values['credit'])) {
@@ -174,7 +176,7 @@ class RefillController extends Controller
     public function beforeDestroy($values)
     {
         if (isset($values['id'])) {
-            $modelRefill = Refill::model()->findByPk($values['id']);
+            $modelRefill = Refill::model()->findByPk((int) $values['id']);
             if (preg_match('/^PENDING\:/', $modelRefill->description) && $modelRefill->payment == 0 && $modelRefill->credit < 0) {
                 $this->cancelSendCreditBDService($values, $modelRefill);
             }
@@ -236,7 +238,8 @@ class RefillController extends Controller
 
     public function cancelSendCreditBDService($values, $modelRefill)
     {
-        User::model()->updateByPk($modelRefill->id_user,
+        User::model()->updateByPk(
+            $modelRefill->id_user,
             [
                 'credit' => new CDbExpression('credit + ' . $modelRefill->credit * -1),
             ]
@@ -245,7 +248,8 @@ class RefillController extends Controller
     public function releaseSendCreditBDService($values, $modelRefill)
     {
 
-        User::model()->updateByPk($modelRefill->id_user,
+        User::model()->updateByPk(
+            $modelRefill->id_user,
             [
                 'credit' => new CDbExpression('credit - ' . $modelRefill->credit * -1),
             ]
@@ -253,7 +257,6 @@ class RefillController extends Controller
 
         $modelRefill->description = preg_replace('/PENDING\: /', '', $modelRefill->description);
         $modelRefill->save();
-
     }
 
     public function subscribeColunms($columns = '')
@@ -264,7 +267,6 @@ class RefillController extends Controller
                 if ($columns[$i]['dataIndex'] == 'credit') {
                     $columns[$i]['dataIndex'] = 't.credit';
                 }
-
             }
         }
         return $columns;

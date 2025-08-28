@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -31,7 +32,7 @@ class DidwwwCommand extends ConsoleCommand
         foreach ($modelDid as $key => $did) {
 
             $order_id = explode('=', $did->description);
-            if ( ! isset($order_id[1])) {
+            if (! isset($order_id[1])) {
                 continue;
             }
 
@@ -92,18 +93,26 @@ class DidwwwCommand extends ConsoleCommand
                 if ($priceDid > 0) // se tiver custo
                 {
 
-                    $modelUser = User::model()->findByPk($did->id_user);
+                    $modelUser = User::model()->findByPk((int) $did->id_user);
 
                     if ($modelUser->id_user == 1) //se for cliente do master
                     {
                         //adiciona a recarga e pagamento do custo de ativaçao
                         if ($did->connection_charge > 0) {
-                            UserCreditManager::releaseUserCredit($model->id_user, $did->connection_charge,
-                                Yii::t('zii', 'Activation DID') . ' ' . $did->did, 0);
+                            UserCreditManager::releaseUserCredit(
+                                $model->id_user,
+                                $did->connection_charge,
+                                Yii::t('zii', 'Activation DID') . ' ' . $did->did,
+                                0
+                            );
                         }
 
-                        UserCreditManager::releaseUserCredit($did->id_user, $did->fixrate,
-                            Yii::t('zii', 'Monthly payment DID') . ' ' . $did->did, 0);
+                        UserCreditManager::releaseUserCredit(
+                            $did->id_user,
+                            $did->fixrate,
+                            Yii::t('zii', 'Monthly payment DID') . ' ' . $did->did,
+                            0
+                        );
 
                         $mail = new Mail(Mail::$TYPE_DID_CONFIRMATION, $did->id_user);
                         $mail->replaceInEmail(Mail::$BALANCE_REMAINING_KEY, $modelUser->credit);
@@ -112,7 +121,7 @@ class DidwwwCommand extends ConsoleCommand
                         $mail->send();
                     } else {
                         //charge the agent
-                        $modelUser         = User::model()->findByPk($modelUser->id_user);
+                        $modelUser         = User::model()->findByPk((int) $modelUser->id_user);
                         $modelUser->credit = $modelUser->credit - $priceDid;
                         $modelUser->save();
                     }
@@ -125,8 +134,6 @@ class DidwwwCommand extends ConsoleCommand
             } else {
                 echo "order to DID $did->did is not completd yet \n";
             }
-
         }
-
     }
 }

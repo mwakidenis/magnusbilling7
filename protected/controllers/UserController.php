@@ -368,9 +368,9 @@ class UserController extends Controller
             } else if ($type == 'u' || $type == 'd') {
 
                 if (isset($values['id'])) {
-                    $modelUser = User::model()->findByPk($values['id']);
+                    $modelUser = User::model()->findByPk((int) $values['id']);
                 } else if ($values[0]['id']) {
-                    $modelUser = User::model()->findByPk($values[0]['id']);
+                    $modelUser = User::model()->findByPk((int) $values[0]['id']);
                 }
                 $user_id_group = $modelUser->id_group;
             }
@@ -630,7 +630,7 @@ class UserController extends Controller
                     continue;
                 }
 
-                $modelOffer     = Offer::model()->findByPk($attributes[$i]['id_offer']);
+                $modelOffer     = Offer::model()->findByPk((int) $attributes[$i]['id_offer']);
                 $freetimetocall = $modelOffer->freetimetocall;
                 $packagetype    = $modelOffer->packagetype;
                 $billingtype    = $modelOffer->billingtype;

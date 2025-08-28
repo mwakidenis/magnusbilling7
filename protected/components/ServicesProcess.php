@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -27,11 +28,13 @@ class ServicesProcess
         $msg     = 'Error';
         foreach ($values['id_services'] as $key => $id_service) {
 
-            $modelServicesUse = ServicesUse::model()->find('id = :key AND status = 2',
+            $modelServicesUse = ServicesUse::model()->find(
+                'id = :key AND status = 2',
                 [
                     ':key' => (int) $id_service,
-                ]);
-            if ( ! isset($modelServicesUse->id)) {
+                ]
+            );
+            if (! isset($modelServicesUse->id)) {
                 continue;
             }
 
@@ -51,7 +54,6 @@ class ServicesProcess
             'success' => $success,
             'msg'     => $msg,
         ]);
-
     }
 
     public static function release($id_services)
@@ -122,7 +124,6 @@ class ServicesProcess
             $pricePerSecond = $modelServicesUse->idServices->price / $secondsInMonth;
 
             return $modelServicesUse->idServices->price - ($pricePerSecond * $secondsUsedThisMonth);
-
         } elseif ($data == date("Y-m-d")) {
             return 0;
             //echo 'vence Hoje';
@@ -143,9 +144,12 @@ class ServicesProcess
                     $modelServicesUse->idServices->disk_space = 0;
                 }
                 //desativa gravacoes se o usuario ficar com espaço em disco menor que 1
-                if ($method != 'activation' &&
-                    ($modelServicesUse->idUser->disk_space - $modelServicesUse->idServices->disk_space < 1)) {
-                    $modelSip = Sip::model()->find('id_user = :key',
+                if (
+                    $method != 'activation' &&
+                    ($modelServicesUse->idUser->disk_space - $modelServicesUse->idServices->disk_space < 1)
+                ) {
+                    $modelSip = Sip::model()->find(
+                        'id_user = :key',
                         [':key' => $modelServicesUse->id_user]
                     );
                     $modelSip->record_call = 0;
@@ -179,7 +183,6 @@ class ServicesProcess
                         $criteria->order          = 'id DESC';
 
                         Sip::model()->deleteAll($criteria);
-
                     }
                     AsteriskAccess::instance()->sipReload();
                 }
@@ -228,7 +231,7 @@ class ServicesProcess
 
         if ($updateUserCredit == true) {
             //add or remove user credit
-            $modelUser = User::model()->findByPk($modelServicesUse->id_user);
+            $modelUser = User::model()->findByPk((int) $modelServicesUse->id_user);
 
             if (preg_match('/\-\-/', $credit)) {
                 $modelUser->credit = $modelUser->credit + ($modelServicesUse->idServices->price * -1);
@@ -252,7 +255,6 @@ class ServicesProcess
         } catch (Exception $e) {
             //error SMTP
         }
-
     }
 
     public static function payService($modelServicesUse)
@@ -308,8 +310,6 @@ class ServicesProcess
                 $service->save();
                 ServicesProcess::updateUser('activation', $service);
             }
-
         }
-
     }
 }

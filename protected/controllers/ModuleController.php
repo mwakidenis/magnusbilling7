@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -48,7 +49,6 @@ class ModuleController extends Controller
         $modules        = $res['rows'];
         $result['rows'] = $this->getModuleTree($modules);
         echo CCJSON::encode($result);
-
     }
 
     private function getModuleTree($modules)
@@ -82,7 +82,7 @@ class ModuleController extends Controller
         $result          = [];
 
         foreach ($subModulesOwner as $model) {
-            if ( ! empty($model['id_module'])) {
+            if (! empty($model['id_module'])) {
                 array_push($result, [
                     'id'        => $model['id'],
                     'text'      => $model['text'],
@@ -113,7 +113,7 @@ class ModuleController extends Controller
 
         if (isset($values['text'])) {
 
-            $modelModel = Module::model()->findByPk($values['id']);
+            $modelModel = Module::model()->findByPk((int) $values['id']);
 
             if ($modelModel->id_module == null) {
                 $values['text'] = preg_replace('/^Menu |^Menú | Module/', '', $values['text']);
@@ -122,7 +122,6 @@ class ModuleController extends Controller
             if (substr($values['text'], 0, 3) != "t('") {
                 $values['text'] = 't(\'' . $values['text'] . '\')';
             }
-
         }
 
         return $values;
@@ -135,7 +134,6 @@ class ModuleController extends Controller
         for ($i = 0; $i < count($pkCount); $i++) {
             if ($attributes[$i]['id_module'] < 1) {
                 $attributes[$i]['text'] = preg_replace('/ Module\'\)/', '\')', $attributes[$i]['text']);
-
             } else {
                 $attributes[$i]['idModuletext'] = preg_replace('/ Module\'\)/', '\')', $attributes[$i]['idModuletext']);
             }
@@ -143,5 +141,4 @@ class ModuleController extends Controller
 
         return $attributes;
     }
-
 }

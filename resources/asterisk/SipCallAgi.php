@@ -1,4 +1,5 @@
 <?php
+
 /**
  *
  */
@@ -60,7 +61,7 @@ class SipCallAgi
 
         $agi->verbose("[" . $MAGNUS->username . " Friend]:[ANSWEREDTIME=" . $answeredtime . "-DIALSTATUS=" . $dialstatus . "]", 6);
 
-        if ( ! preg_match('/^CANCEL|^ANSWER/', strtoupper($dialstatus))) {
+        if (! preg_match('/^CANCEL|^ANSWER/', strtoupper($dialstatus))) {
 
             $sql = "SELECT * FROM pkg_sip WHERE name = '$MAGNUS->destination' LIMIT 1 ";
             $agi->verbose($sql, 25);
@@ -134,7 +135,6 @@ class SipCallAgi
 
             $MAGNUS->dnid = $MAGNUS->destination = $MAGNUS->sip_account = $MAGNUS->modelSip->name;
             sipCallAgi::processCall($MAGNUS, $agi, $CalcAgi);
-
         } else if ($optionType == 'group') // CUSTOM
         {
             $agi->verbose("Call to group " . $optionValue, 1);
@@ -142,7 +142,7 @@ class SipCallAgi
             $agi->verbose($sql, 25);
             $modelSip = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
 
-            if ( ! isset($modelSip[0]->id)) {
+            if (! isset($modelSip[0]->id)) {
                 $agi->verbose('GROUP NOT FOUND');
                 $agi->stream_file('prepaid-invalid-digits', '#');
             }
@@ -188,7 +188,7 @@ class SipCallAgi
             $sql = "SELECT * FROM pkg_user WHERE id = $modelSipForward->id_user  LIMIT 1";
             $agi->verbose($sql, 25);
             $modelUserForward    = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
-            $MAGNUS->CallerID    = $modelSipForward->callerid;
+            $MAGNUS->CallerID    = strlen($modelSipForward->callerid) > 3 ?  $modelSipForward->callerid : $MAGNUS->CallerID;
             $MAGNUS->accountcode = $modelUserForward->accountcode;
             $agi->set_callerid($MAGNUS->CallerID);
             $agi->verbose("CALL number $optionValue");
@@ -198,7 +198,6 @@ class SipCallAgi
         {
             $this->sendSMS($MAGNUS, $agi, $CalcAgi, $optionValue);
         }
-
     }
 
     public static function smsForward($MAGNUS, $agi, $CalcAgi, $optionValue)
@@ -230,7 +229,6 @@ class SipCallAgi
             $sql = "SELECT * FROM pkg_trunk_group_trunk WHERE id_trunk_group = " . $modelRate->id_trunk_group . " ORDER BY id ASC";
         } else if ($modelRate->trunk_group_type == 2) {
             $sql = "SELECT * FROM pkg_trunk_group_trunk WHERE id_trunk_group = " . $modelRate->id_trunk_group . " ORDER BY RAND() ";
-
         } else if ($modelRate[0]['trunk_group_type'] == 3) {
             $sql = "SELECT *, (SELECT buyrate FROM pkg_rate_provider WHERE id_provider = tr.id_provider AND id_prefix = " . $modelRate->id_prefix . " LIMIT 1) AS buyrate  FROM pkg_trunk_group_trunk t  JOIN pkg_trunk tr ON t.id_trunk = tr.id WHERE id_trunk_group = " . $modelRate->id_trunk_group . " ORDER BY buyrate IS NULL , buyrate ";
         }
@@ -272,7 +270,7 @@ class SipCallAgi
 
         $agi->verbose($url);
 
-        if ( ! $res = @file_get_contents($url, false)) {
+        if (! $res = @file_get_contents($url, false)) {
             $agi->verbose("ERRO SMS -> " . $url);
         }
 

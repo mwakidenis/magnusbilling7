@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -44,14 +45,14 @@ class ServicesController extends Controller
         if (Yii::app()->session['user_type'] == 2) {
             $filter .= ' AND id_user = :dfby';
             $this->paramsFilter[':dfby'] = Yii::app()->session['id_user'];
+            $this->paramsFilter[':dfby1'] = Yii::app()->session['id_plan'];
         } else if (Yii::app()->session['user_type'] == 3) {
             $filter .= " AND id IN (SELECT id_services FROM pkg_services_plan WHERE id_plan = :dfby1)";
+            $this->paramsFilter[':dfby1'] = Yii::app()->session['id_plan'];
         }
 
-        $this->paramsFilter[':dfby1'] = Yii::app()->session['id_plan'];
+
 
         return $filter;
-
     }
-
 }
