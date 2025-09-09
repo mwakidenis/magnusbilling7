@@ -276,9 +276,11 @@ class BuyCreditController extends Controller
         $modelMethodPay = Methodpay::model()->find('payment_method = "Stripe"');
 
         require_once('/var/www/html/mbilling/lib/stripe/vendor/autoload.php');
-
+        
         \Stripe\Stripe::setApiKey($modelMethodPay->client_secret);
-
+        
+        $successUrl = Yii::app()->createAbsoluteUrl('buyCredit/stripSuccess');
+        $cancelUrl  = Yii::app()->createAbsoluteUrl('buyCredit/stripError');
         $amount = (float) $_POST['amount'];
         $userId = Yii::app()->user->id;
 
@@ -309,11 +311,13 @@ class BuyCreditController extends Controller
             ]],
             'mode' => 'payment',
             'client_reference_id' => "user," . Yii::app()->session['id_user'],
-            'success_url' => $_SERVER['HTTP_REFERER'] . 'index.php/buyCredit/stripSuccess?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' =>  $_SERVER['HTTP_REFERER'] . 'index.php/buyCredit/stripError',
+            'success_url' => $successUrl . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url'  => $cancelUrl,
             'metadata' => [
-                'user_id' => Yii::app()->session['id_user']
+                'user_id' => Yii::app()->session['id_user'],
+                'username' => Yii::app()->session['username'],
             ]
+            'customer_email' => Yii::app()->session['email'] ?? null,
         ]);
 
         echo json_encode(['id' => $session->id]);
@@ -373,3 +377,4 @@ class BuyCreditController extends Controller
         ]);
     }
 }
+
