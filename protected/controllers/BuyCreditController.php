@@ -317,7 +317,7 @@ class BuyCreditController extends Controller
                 'user_id' => Yii::app()->session['id_user'],
                 'username' => Yii::app()->session['username'],
             ]
-            'customer_email' => Yii::app()->session['email'] ?? null,
+            'customer_email' => User::model()->findByPk(Yii::app()->session['id_user'])->email ?? null,
         ]);
 
         echo json_encode(['id' => $session->id]);
@@ -377,4 +377,5 @@ class BuyCreditController extends Controller
         ]);
     }
 }
+
 
