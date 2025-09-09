@@ -276,13 +276,17 @@ class BuyCreditController extends Controller
         $modelMethodPay = Methodpay::model()->find('payment_method = "Stripe"');
 
         require_once('/var/www/html/mbilling/lib/stripe/vendor/autoload.php');
-        
+
         \Stripe\Stripe::setApiKey($modelMethodPay->client_secret);
-        
+
         $successUrl = Yii::app()->createAbsoluteUrl('buyCredit/stripSuccess');
         $cancelUrl  = Yii::app()->createAbsoluteUrl('buyCredit/stripError');
+
         $amount = (float) $_POST['amount'];
         $userId = Yii::app()->user->id;
+
+        $username = (string) Yii::app()->session['username'];
+        $email    = User::model()->findByPk(Yii::app()->session['id_user'])->email ?? null;
 
         if (Yii::app()->session['currency'] == 'U$S' || Yii::app()->session['currency'] == 'U$' || Yii::app()->session['currency'] == '$') {
             $currency = 'USD';
@@ -296,29 +300,34 @@ class BuyCreditController extends Controller
             $currency = Yii::app()->session['currency'];
         }
 
-
-        $session = \Stripe\Checkout\Session::create([
-            'payment_method_types' => ['card'],
+        $stripeCustomerId = null;
+        if ($email) {
+            $list = \Stripe\Customer::all(['email' => $email, 'limit' => 1]);
+            if (!empty($list->data)) {
+                $stripeCustomerId = $list->data[0]->id;
+            }
+        }
+        $params = [
+            'mode' => 'payment',
             'line_items' => [[
                 'price_data' => [
-                    'currency' => $currency,
-                    'product_data' => [
-                        'name' => "user," . Yii::app()->session['username'],
-                    ],
-                    'unit_amount' => intval($amount * 100),
+                    'currency'     => $currency,
+                    'product_data' => ['name' => "user,{$username}"],
+                    'unit_amount'  => (int) round($amount * 100),
                 ],
                 'quantity' => 1,
             ]],
-            'mode' => 'payment',
-            'client_reference_id' => "user," . Yii::app()->session['id_user'],
+            'client_reference_id' => "user,{$userId}",
             'success_url' => $successUrl . '?session_id={CHECKOUT_SESSION_ID}',
             'cancel_url'  => $cancelUrl,
             'metadata' => [
-                'user_id' => Yii::app()->session['id_user'],
-                'username' => Yii::app()->session['username'],
-            ]
-            'customer_email' => User::model()->findByPk(Yii::app()->session['id_user'])->email ?? null,
-        ]);
+                'user_id'  => (string)$userId,
+                'username' => $username,
+            ],
+        ];
+
+        $stripeCustomerId ? $params['customer'] = $stripeCustomerId : $params['customer_email'] = $email;
+        $session = \Stripe\Checkout\Session::create($params);
 
         echo json_encode(['id' => $session->id]);
     }
@@ -377,5 +386,6 @@ class BuyCreditController extends Controller
         ]);
     }
 }
+
 
 
