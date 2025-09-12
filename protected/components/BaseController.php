@@ -2194,9 +2194,15 @@ class BaseController extends CController
             if (isset($values['id_user'])) {
                 $modelUser = User::model()->findByPk((int) $values['id_user']);
 
-                if (isset($modelUser->id) && $modelUser->id_user != Yii::app()->session['id_user']) {
+
+                if (preg_match('/pkg_plan|pkg_user/', $this->abstractModel->tableName())) {
+                    if (isset($modelUser->id) && $modelUser->id != Yii::app()->session['id_user']) {
+                        Yii::log('try create with id_user invalid', 'error');
+                        exit('try create with id_user invalid id_user = ' . $values['id_user'] . ' modedel->id' . $modelUser->id);
+                    }
+                } else if (isset($modelUser->id) && $modelUser->id_user != Yii::app()->session['id_user']) {
                     Yii::log('try create with id_user invalid', 'error');
-                    exit('try create with id_user invalid');
+                    exit('try create with id_user invalid id_user = ' . $values['id_user']);
                 }
             }
         } else {

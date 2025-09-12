@@ -37,7 +37,6 @@ class Controller extends BaseController
     //Allowed controllers to no admin users use updateall
     public $controllerAllowUpdateAll = [
         'rateCallshop',
-        'sendCreditRates',
     ];
 
     public function authorizedNoSession($value = false)
@@ -62,7 +61,6 @@ class Controller extends BaseController
             'pagSeguro',
             'paypal',
             'placetoPay',
-            'transferToMobile',
             'pagHiper',
             'mercadoPago',
             'molPay',

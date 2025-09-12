@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Modelo para a tabela "User".
  * =======================================
@@ -66,10 +67,7 @@ class User extends Model
             ['id_user, id_group, id_plan, id_offer, active, enableexpire, expiredays,
                     typepaid, creditlimit, credit_notification,sipaccountlimit, restriction,
                     callingcard_pin, callshop, plan_day, active_paypal, boleto,
-                    boleto_day, calllimit, disk_space,id_group_agent,transfer_dbbl_rocket_profit,
-                    transfer_bkash_profit,transfer_flexiload_profit,transfer_international_profit,
-                    transfer_dbbl_rocket,transfer_bkash,transfer_flexiload,transfer_international,
-                    transfer_bdservice_rate,transfer_show_selling_price,cpslimit,
+                    boleto_day, calllimit, disk_space,id_group_agent,cpslimit,
                     restriction_use,credit_notification_daily,email_services,email_did, inbound_call_limit', 'numerical', 'integerOnly' => true],
             ['language,mix_monitor_format,calllimit_error', 'length', 'max' => 5],
             ['zipcode, phone, mobile, vat', 'length', 'max' => 20],
@@ -87,7 +85,6 @@ class User extends Model
         ];
 
         return $this->getExtraField($rules);
-
     }
 
     public function checkusername($attribute, $params)
@@ -96,10 +93,9 @@ class User extends Model
             $this->addError($attribute, Yii::t('zii', 'No space allow in username'));
         }
 
-        if ( ! preg_match('/^[0-9]|^[A-Z]|^[a-z]/', $this->username)) {
+        if (! preg_match('/^[0-9]|^[A-Z]|^[a-z]/', $this->username)) {
             $this->addError($attribute, Yii::t('zii', 'Username need start with numbers or letters'));
         }
-
     }
 
     public function checksecret($attribute, $params)
@@ -115,7 +111,6 @@ class User extends Model
         if ($this->password == $this->username) {
             $this->addError($attribute, Yii::t('zii', 'Password cannot be equal username'));
         }
-
     }
 
     public function beforeSave()

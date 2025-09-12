@@ -23,27 +23,7 @@ Ext.define('MBilling.view.refill.Controller', {
     alias: 'controller.refill',
     aliasChart: 'refillchart',
     isSubmitForm: true,
-    onPrint: function(btn) {
-        var me = this;
-        if (App.user.isClient) {
-            var me = this,
-                selected = me.list.getSelectionModel().getSelection()[0];
-            if (me.list.getSelectionModel().getSelection().length == 1) {
-                console.log(selected.data.description.indexOf("Send Credit "));
-                if (selected.data.description.indexOf("Send Credit ") !== -1) {
-                    url = 'index.php/transferToMobile/printRefill/?id=' + selected.get('id');
-                    window.open(url);
-                } else {
-                    me.callParent(arguments);
-                }
-            } else {
-                me.callParent(arguments);
-            }
-        } else {
-            me.callParent(arguments);
-        }
-    },
-    onInvoice: function(btn) {
+    onInvoice: function (btn) {
         var me = this;
         var me = this,
             selected = me.list.getSelectionModel().getSelection()[0];
@@ -54,23 +34,23 @@ Ext.define('MBilling.view.refill.Controller', {
             Ext.ux.Alert.alert(me.titleError, t('Not available to multi refill.'), 'error');
         }
     },
-    onSelectionChange: function(selModel, selections) {
+    onSelectionChange: function (selModel, selections) {
         var me = this,
             btnInvoice = me.lookupReference('invoice');
         btnInvoice && btnInvoice.setDisabled(!selections.length);
         me.callParent(arguments);
     },
-    onRenderModule: function() {
+    onRenderModule: function () {
         var me = this,
             btnChart = me.lookupReference('chart');
         me.callParent(arguments);
         if (App.user.isAdmin) {
             me.store.on({
                 scope: me,
-                beforeload: function() {
+                beforeload: function () {
                     btnChart.el && btnChart.disable();
                 },
-                load: function(store) {
+                load: function (store) {
                     btnChart.el && btnChart.enable();
                     me.onSetTotal();
                 }
@@ -78,13 +58,13 @@ Ext.define('MBilling.view.refill.Controller', {
         } else {
             me.store.on({
                 scope: me,
-                load: function(store) {
+                load: function (store) {
                     me.onSetTotal();
                 }
             });
         }
     },
-    onChart: function() {
+    onChart: function () {
         var me = this;
         me.chart = Ext.widget('window', {
             title: t('Charts'),
@@ -100,7 +80,7 @@ Ext.define('MBilling.view.refill.Controller', {
         });
         me.chart.down('#tbTextSum').setText('<b>' + t('Total') + ': ' + App.user.currency + ' ' + me.sumData.sumCredit + '</b>');
     },
-    onSetTotal: function(win) {
+    onSetTotal: function (win) {
         var me = this;
         if (!me.store.getData().items[0]) return;
         me.sumData = me.store.getData().items[0].getData();
@@ -109,7 +89,7 @@ Ext.define('MBilling.view.refill.Controller', {
         }
         me.lookupReference('tbTextTotal') && me.lookupReference('tbTextTotal').setText('<b>' + t('Refill Total') + ': ' + App.user.currency + ' ' + me.sumData.sumCredit + '</b>');
     },
-    onEdit: function() {
+    onEdit: function () {
         var me = this,
             record = me.list.getSelectionModel().getSelection()[0];
         fieldImage = record.get('image');
@@ -120,7 +100,7 @@ Ext.define('MBilling.view.refill.Controller', {
             Ext.getCmp('imagePreview').update('');
         }
     },
-    ImageExist: function(url) {
+    ImageExist: function (url) {
         var img = new Image();
         img.src = url;
         return img.height != 0;

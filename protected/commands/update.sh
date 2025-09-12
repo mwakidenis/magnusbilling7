@@ -139,6 +139,19 @@ if [[ -e /var/www/html/mbilling/resources/images/lock-screen-background.jpg ]]; 
 	done	
 fi
 
+rm -rf /var/www/html/mbilling/protected/controllers/Transfer*
+rm -rf /var/www/html/mbilling/protected/controllers/SendCredit*
+rm -rf /var/www/html/mbilling/protected/controllers/SmsInfoBip*
+rm -rf /var/www/html/mbilling/protected/controllers/BDService*
+rm -rf /var/www/html/mbilling/protected/models/Transfer*
+rm -rf /var/www/html/mbilling/protected/models/SendCredit*
+rm -rf /var/www/html/mbilling/protected/models/SmsInfoBip*
+rm -rf /var/www/html/mbilling/protected/components/Transfer*
+rm -rf /var/www/html/mbilling/protected/components/SendCredit*
+rm -rf /var/www/html/mbilling/protected/views/transfer*
+rm -rf /var/www/html/mbilling/protected/views/sendCredit*
+rm -rf /var/www/html/mbilling/protected/commands/BDService*
+
 ##update database
 php /var/www/html/mbilling/cron.php UpdateMysql
 

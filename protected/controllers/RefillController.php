@@ -67,12 +67,7 @@ class RefillController extends Controller
     public function beforeSave($values)
     {
         $modelRefill = Refill::model()->findByPk((int) $values['id']);
-        if (! $this->isNewRecord) {
 
-            if (isset($values['payment']) && (preg_match('/^PENDING\:/', $modelRefill->description) && $values['payment'] == 1 && $modelRefill->payment == 0)) {
-                $this->releaseSendCreditBDService($values, $modelRefill);
-            }
-        }
         if (isset(Yii::app()->session['isAgent']) && Yii::app()->session['isAgent'] == true) {
 
             $id_user = isset($values['id_user']) ? $values['id_user'] : $modelRefill->id_user;
@@ -122,36 +117,6 @@ class RefillController extends Controller
     {
         if ($this->isNewRecord) {
             UserCreditManager::releaseUserCredit($model->id_user, $model->credit, $model->description, 2);
-            if (preg_match("/Send Credit to /", $model->description)) {
-                //Send Credit to 01788988066 via bkash at 107.50
-                //Send Credit to 01717768732 via flexiload at 11.83. Ref: BD06120019120095
-
-                if ($model->credit < 0) {
-                    $credit = $model->credit * -1;
-                } else {
-                    $credit = $model->credit;
-                }
-                $service = explode(' ', $model->description);
-
-                $number  = $service[3];
-                $sell    = substr($service[7], 0, -1);
-                $service = $service[5];
-
-                $modelSendCreditSummary            = new SendCreditSummary();
-                $modelSendCreditSummary->id_user   = $model->id_user;
-                $modelSendCreditSummary->service   = $service;
-                $modelSendCreditSummary->number    = $number;
-                $modelSendCreditSummary->confirmed = $model->payment;
-                $modelSendCreditSummary->cost      = $credit;
-                $modelSendCreditSummary->sell      = $sell;
-                $modelSendCreditSummary->amount    = $credit;
-
-                $modelSendCreditSummary->earned = $sell - $credit;
-                $modelSendCreditSummary->save();
-
-                $model->invoice_number = $modelSendCreditSummary->id;
-                $model->save();
-            }
         }
 
         if (isset($_FILES["image"]) && strlen($_FILES["image"]["name"]) > 1) {
@@ -177,9 +142,6 @@ class RefillController extends Controller
     {
         if (isset($values['id'])) {
             $modelRefill = Refill::model()->findByPk((int) $values['id']);
-            if (preg_match('/^PENDING\:/', $modelRefill->description) && $modelRefill->payment == 0 && $modelRefill->credit < 0) {
-                $this->cancelSendCreditBDService($values, $modelRefill);
-            }
         }
         return $values;
     }
@@ -236,28 +198,6 @@ class RefillController extends Controller
         return $attributes;
     }
 
-    public function cancelSendCreditBDService($values, $modelRefill)
-    {
-        User::model()->updateByPk(
-            $modelRefill->id_user,
-            [
-                'credit' => new CDbExpression('credit + ' . $modelRefill->credit * -1),
-            ]
-        );
-    }
-    public function releaseSendCreditBDService($values, $modelRefill)
-    {
-
-        User::model()->updateByPk(
-            $modelRefill->id_user,
-            [
-                'credit' => new CDbExpression('credit - ' . $modelRefill->credit * -1),
-            ]
-        );
-
-        $modelRefill->description = preg_replace('/PENDING\: /', '', $modelRefill->description);
-        $modelRefill->save();
-    }
 
     public function subscribeColunms($columns = '')
     {
