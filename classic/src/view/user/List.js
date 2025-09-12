@@ -8,7 +8,7 @@ Ext.define('MBilling.view.user.List', {
     alias: 'widget.userlist',
     store: 'User',
     fieldSearch: 'username',
-    initComponent: function() {
+    initComponent: function () {
         var me = this;
         me.buttonCsv = false;
         me.allowPrint = false;
@@ -115,8 +115,15 @@ Ext.define('MBilling.view.user.List', {
             hidden: window.isTablet,
             flex: 4
         }, {
-            dataIndex: 'id_offer',
-            header: t('Offer'),
+            header: t('Expiration date'),
+            renderer: Ext.util.Format.dateRenderer('Y-m-d H:i:s'),
+            dataIndex: 'expirationdate',
+            hidden: true,
+            hideable: App.user.isAdmin,
+            flex: 4
+        }, {
+            dataIndex: 'prefix_local',
+            header: t('Prefix rules'),
             flex: 2,
             hidden: true,
             hideable: !App.user.isClient && !App.user.isAgent

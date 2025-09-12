@@ -115,8 +115,7 @@ class BaseController extends CController
             $modelFirewall->jail = 'ip-blacklist';
             try {
                 $modelFirewall->save();
-             } catch (Exception $e) {
-                
+            } catch (Exception $e) {
             }
             exit;
         }
@@ -657,7 +656,7 @@ class BaseController extends CController
                         exit('try edit invalid id');
                     }
                 }
-            } else if (! $this->isNewRecord && Yii::app()->session['isAgent']) {
+            } else if (Yii::app()->session['isAgent']) {
                 $this->checkAgentPermission($values, $namePk);
             }
 
@@ -2190,25 +2189,41 @@ class BaseController extends CController
     }
     public function checkAgentPermission($values, $namePk)
     {
-        if ($this->abstractModel->tableName() == 'pkg_user') {
-            $modelUser = User::model()->findByPk((int) $values['id']);
-            $id_user   = $modelUser->id_user;
-        } else if (preg_match('/pkg_plan/', $this->abstractModel->tableName())) {
-            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
-            $id_user    = $modelCheck->idUser->id;
-        } else if (preg_match('/pkg_rate_agent/', $this->abstractModel->tableName())) {
-            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
-            $id_user    = $modelCheck->idPlan->idUser->id;
-        } else if (preg_match('/pkg_offer/', $this->abstractModel->tableName())) {
-            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
-            $id_user    = $modelCheck->idUser->id;
-        } else {
-            $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
-            $id_user    = $modelCheck->idUser->id_user;
-        }
+        if ($this->isNewRecord) {
 
-        if ($id_user != Yii::app()->session['id_user']) {
-            exit('try edit invalid id');
+            if (isset($values['id_user'])) {
+                $modelUser = User::model()->findByPk((int) $values['id_user']);
+
+                if (isset($modelUser->id) && $modelUser->id_user != Yii::app()->session['id_user']) {
+                    Yii::log('try create with id_user invalid', 'error');
+                    exit('try create with id_user invalid');
+                }
+            }
+        } else {
+
+            if ($this->abstractModel->tableName() == 'pkg_user') {
+                $modelUser = User::model()->findByPk((int) $values['id']);
+                $id_user   = $modelUser->id_user;
+            } else if (preg_match('/pkg_plan/', $this->abstractModel->tableName())) {
+                $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
+                $id_user    = $modelCheck->idUser->id;
+            } else if (preg_match('/pkg_rate_agent/', $this->abstractModel->tableName())) {
+                $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
+                $id_user    = $modelCheck->idPlan->idUser->id;
+            } else if (preg_match('/pkg_offer/', $this->abstractModel->tableName())) {
+                $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
+                $id_user    = $modelCheck->idUser->id;
+            } else {
+                $modelCheck = $this->abstractModel->findByPk((int) $values[$namePk]);
+
+                Yii::log(print_r($modelCheck->getAttributes(), true), 'error');
+
+                $id_user    = $modelCheck->idUser->id_user;
+            }
+
+            if ($id_user != Yii::app()->session['id_user']) {
+                exit('try edit invalid id');
+            }
         }
     }
 }

@@ -38,7 +38,7 @@ class sqlInject
             'TRUNCATE ',
             'CREATE ',
             'print',
-            'echo',
+            'echo ',
             'while',
             'shell_exec',
             'popen',
