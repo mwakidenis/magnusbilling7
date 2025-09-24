@@ -628,7 +628,7 @@ echo
 echo "Installing Fail2ban & Iptables"
 echo
 
-ssh_port=$(cat /etc/ssh/sshd_config | grep Port |  awk 'NR==1{print $2}')
+ssh_port=$(grep -E '^[[:space:]]*Port[[:space:]]+' /etc/ssh/sshd_config | awk '{print $2}')
 
 apt install -y firewalld
 
@@ -639,7 +639,7 @@ systemctl start firewalld
 systemctl enable firewalld
 systemctl enable fail2ban
 
-firewall-cmd --zone=public --add-port=$sshPort/tcp --permanent
+firewall-cmd --zone=public --add-port=$ssh_port/tcp --permanent
 firewall-cmd --zone=public --add-port=22/tcp --permanent
 firewall-cmd --zone=public --add-port=80/tcp --permanent
 firewall-cmd --zone=public --add-port=443/tcp --permanent
