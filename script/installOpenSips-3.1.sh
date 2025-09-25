@@ -170,14 +170,12 @@ mysql -u root -p$(awk '{print $1}' /root/passwordMysql.log) opensips -e "ALTER T
 mysql -u root -p$(awk '{print $1}' /root/passwordMysql.log) opensips -e "ALTER TABLE subscriber ADD  cpslimit INT( 11 ) NOT NULL DEFAULT  '-1'"
 mysql -u root -p$(awk '{print $1}' /root/passwordMysql.log) opensips -e "ALTER TABLE address CHANGE context_info  context_info CHAR( 70 ) NULL DEFAULT NULL ;"
 
-
+cd /root
 wget https://raw.githubusercontent.com/magnussolution/magnusbilling7/source/script/sync_opensips_reload.sh
 
 chmod +x sync_opensips_reload.sh
 
-echo "
-* * * * * root /root/sync_opensips_reload.sh
-" >> /etc/crontab
+grep -q "/root/sync_opensips_reload.sh" /etc/crontab || echo "* * * * * root flock -n /tmp/sync_opensips.lock /root/sync_opensips_reload.sh" >> /etc/crontab
 
 
 cd /etc/opensips/
@@ -248,7 +246,7 @@ systemctl start firewalld
 systemctl enable firewalld
 systemctl enable fail2ban
 
-
+firewall-cmd --zone=public --add-port=$ssh_port/tcp --permanent
 firewall-cmd --zone=public --add-port=22/tcp --permanent
 firewall-cmd --zone=public --add-port=80/tcp --permanent
 firewall-cmd --zone=public --add-port=443/tcp --permanent

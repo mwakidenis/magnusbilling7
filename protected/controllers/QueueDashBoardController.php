@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Queue".
  *
@@ -121,14 +122,10 @@ class QueueDashBoardController extends Controller
                     try {
                         $command->execute();
                     } catch (Exception $e) {
-
                     }
-
                 }
             }
-
         }
-
     }
 
     public function setAttributesModels($attributes, $models)
@@ -136,7 +133,7 @@ class QueueDashBoardController extends Controller
 
         $pkCount = is_array($attributes) || is_object($attributes) ? $attributes : [];
         for ($i = 0; $i < count($pkCount); $i++) {
-            $duration                   = time() - strtotime($attributes[$i]['time']) - $attributes[$i]['holdtime'];
+            $duration                   = time() - (int)strtotime($attributes[$i]['time']) - (int)$attributes[$i]['holdtime'];
             $attributes[$i]['duration'] = $duration;
         }
         return $attributes;
@@ -154,5 +151,4 @@ class QueueDashBoardController extends Controller
         $len = strpos($string, $end, $ini) - $ini;
         return trim(substr($string, $ini, $len));
     }
-
 }

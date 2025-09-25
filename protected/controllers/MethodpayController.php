@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Methodpay".
  *
@@ -70,9 +71,12 @@ class MethodpayController extends Controller
 
         foreach ($values as $key => $value) {
 
-            array_push($amount, [
-                'id'     => $key + 1,
-                'amount' => $value]
+            array_push(
+                $amount,
+                [
+                    'id'     => $key + 1,
+                    'amount' => $value
+                ]
             );
         }
 
@@ -81,7 +85,6 @@ class MethodpayController extends Controller
             $this->nameCount => 10,
             $this->nameSum   => [],
         ]);
-
     }
 
     public function extraFilterCustom($filter)
