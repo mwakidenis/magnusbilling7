@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -83,7 +84,7 @@ class CallArchiveController extends Controller
 
         parent::init();
 
-        if ( ! Yii::app()->session['isAdmin']) {
+        if (! Yii::app()->session['isAdmin']) {
             $this->extraValues = [
                 'idUser'   => 'username',
                 'idPlan'   => 'name',
@@ -202,9 +203,7 @@ class CallArchiveController extends Controller
 
             $folder = $this->magnusFilesDirectory . 'monitor';
 
-            if ( ! file_exists($folder)) {
-                mkdir($folder, 0777, true);
-            }
+
             array_map('unlink', glob("$folder/*"));
 
             if (count($modelCdr)) {
@@ -282,5 +281,4 @@ class CallArchiveController extends Controller
         $modelCall->totalCall      = number_format($modelCall->sumsessionbill - $modelCall->sumbuycost, 4);
         echo json_encode($modelCall);
     }
-
 }

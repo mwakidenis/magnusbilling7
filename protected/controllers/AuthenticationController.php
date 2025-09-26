@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -52,7 +53,8 @@ class AuthenticationController extends Controller
             [
                 'condition' => $condition,
                 'params'    => [':user' => $user, ':pass' => $password],
-            ]);
+            ]
+        );
 
         $loginkey = isset($_POST['loginkey']) ? $_POST['loginkey'] : false;
 
@@ -65,7 +67,7 @@ class AuthenticationController extends Controller
             $mail->send();
         }
 
-        if ( ! isset($modelUser->id)) {
+        if (! isset($modelUser->id)) {
             Yii::app()->session['logged'] = false;
             echo json_encode([
                 'success' => false,
@@ -145,20 +147,21 @@ class AuthenticationController extends Controller
                 }
                 Yii::app()->session['googleAuthenticatorKey'] = $ga->getQRCodeGoogleUrl('VoIP-' . $modelUser->username . '-' . $modelUser->id, $secret);
 
-                $modelLogUsers = LogUsers::model()->count('id_user = :key AND ip = :key1 AND description = :key2 AND date > :key3',
+                $modelLogUsers = LogUsers::model()->count(
+                    'id_user = :key AND ip = :key1 AND description = :key2 AND date > :key3',
                     [
                         ':key'  => $modelUser->id,
                         ':key1' => $_SERVER['REMOTE_ADDR'],
                         ':key2' => 'Username Login on the panel - User ' . $modelUser->username,
                         ':key3' => date('Y-m-d'),
-                    ]);
+                    ]
+                );
                 if ($modelLogUsers > 0) {
                     Yii::app()->session['checkGoogleAuthenticator'] = false;
                 } else {
                     Yii::app()->session['checkGoogleAuthenticator'] = true;
                 }
             }
-
         } else {
             Yii::app()->session['showGoogleCode']           = false;
             Yii::app()->session['newGoogleAuthenticator']   = false;
@@ -177,7 +180,6 @@ class AuthenticationController extends Controller
             'success' => Yii::app()->session['username'],
             'msg'     => Yii::app()->session['name_user'],
         ]);
-
     }
 
     private function mountMenu()
@@ -229,8 +231,10 @@ class AuthenticationController extends Controller
         if (Yii::app()->session['logged']) {
 
             $this->mountMenu();
-            $modelGroupUserGroup = GroupUserGroup::model()->count('id_group_user = :key',
-                [':key' => Yii::app()->session['id_group']]);
+            $modelGroupUserGroup = GroupUserGroup::model()->count(
+                'id_group_user = :key',
+                [':key' => Yii::app()->session['id_group']]
+            );
 
             $modelGroupUser = GroupUser::model()->findByPk(Yii::app()->session['id_group']);
 
@@ -410,7 +414,6 @@ class AuthenticationController extends Controller
             'success' => $sussess,
             'msg'     => Yii::app()->session['name_user'],
         ]);
-
     }
 
     public function actionChangePassword()
@@ -422,18 +425,18 @@ class AuthenticationController extends Controller
         $isClient        = Yii::app()->session['isClient'];
         $errors          = '';
 
-        $modelUser = User::model()->find("id LIKE :id_user AND password LIKE :currentPassword",
+        $modelUser = User::model()->find(
+            "id LIKE :id_user AND password LIKE :currentPassword",
             [
                 ":id_user"         => $id_user,
                 ":currentPassword" => $currentPassword,
-            ]);
+            ]
+        );
 
         if (isset($modelUser->id)) {
-            try
-            {
+            try {
                 $modelUser->password = $newPassword;
                 $passwordChanged     = $modelUser->save();
-
             } catch (Exception $e) {
                 $errors = $this->getErrorMySql($e);
             }
@@ -460,7 +463,7 @@ class AuthenticationController extends Controller
             } else {
                 $uploadfile = $uploaddir . 'logo_custom.png';
             }
-            $typefile = Util::valid_extension($_FILES["logo"]["name"], ['png']);
+            Util::validExtension($_FILES['logo']['tmp_name'], $_FILES["logo"]["name"], ['png']);
 
             move_uploaded_file($_FILES["logo"]["tmp_name"], $uploadfile);
         }
@@ -476,7 +479,7 @@ class AuthenticationController extends Controller
         if (isset($_FILES['wallpaper']['tmp_name']) && strlen($_FILES['wallpaper']['tmp_name']) > 3) {
 
             $uploaddir = "resources/images/wallpapers/";
-            $typefile  = Util::valid_extension($_FILES["wallpaper"]["name"], ['jpg']);
+            Util::validExtension($_FILES['wallpaper']['tmp_name'], $_FILES["wallpaper"]["name"], ['jpg']);
 
             $uploadfile = $uploaddir . 'Customization.jpg';
             move_uploaded_file($_FILES["wallpaper"]["tmp_name"], $uploadfile);
@@ -495,7 +498,6 @@ class AuthenticationController extends Controller
             'success' => $success,
             'msg'     => $msg,
         ]);
-
     }
 
     public function actionImportLoginBackground()
@@ -505,7 +507,7 @@ class AuthenticationController extends Controller
 
         if (isset($_FILES['loginbackground']['tmp_name']) && strlen($_FILES['loginbackground']['tmp_name']) > 3) {
 
-            $typefile = Util::valid_extension($_FILES["loginbackground"]["name"], ['jpg']);
+            Util::validExtension($_FILES['loginbackground']['tmp_name'], $_FILES["loginbackground"]["name"], ['jpg']);
 
             $uploadfile = 'resources/images/lock-screen-background.jpg';
             try {
@@ -514,17 +516,7 @@ class AuthenticationController extends Controller
                 $msg     = 'Refresh the system to see the new wallpaper';
             } catch (Exception $e) {
             }
-
         }
-
-        $colors = ['black', 'blue', 'gray', 'orange', 'purple', 'red', 'yellow', 'green'];
-        foreach ($colors as $key => $color) {
-            $types = ['crisp', 'neptune', 'triton'];
-            foreach ($types as $key => $type) {
-                copy("/var/www/html/mbilling/resources/images/lock-screen-background.jpg", "/var/www/html/mbilling/$color-$type/resources/images/lock-screen-background.jpg");
-            }
-        }
-
         echo json_encode([
             'success' => $success,
             'msg'     => $msg,
@@ -569,7 +561,6 @@ class AuthenticationController extends Controller
             'success' => $success,
             'msg'     => $msg,
         ]);
-
     }
 
     public function actionCancelCreditNotification()
@@ -648,11 +639,12 @@ class AuthenticationController extends Controller
                 ]
             );
 
-            $opts = ['http' => [
-                'method'  => 'POST',
-                'header'  => 'Content-type: application/x-www-form-urlencoded',
-                'content' => $post_data,
-            ],
+            $opts = [
+                'http' => [
+                    'method'  => 'POST',
+                    'header'  => 'Content-type: application/x-www-form-urlencoded',
+                    'content' => $post_data,
+                ],
             ];
 
             $context  = stream_context_create($opts);

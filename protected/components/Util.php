@@ -296,20 +296,81 @@ class Util
         return $ratecost;
     }
 
-    public static function valid_extension($filename, $allowed = [])
+    /**
+     * Validate file extension and real MIME type.
+     *
+     * @param string $tmpPath      Temporary path (ex: $_FILES['file']['tmp_name'])
+     * @param string $originalName Original filename (ex: $_FILES['file']['name'])
+     * @param array  $allowed      Allowed extensions (ex: ['png','jpg','pdf'])
+     * @return array               ['ext' => 'png', 'mime' => 'image/png']
+     */
+    public static function validExtension($tmpPath, $originalName, array $allowed = [])
     {
-        $ext = strtolower(CFileHelper::getExtension($filename));
+        // Extension -> MIME map (only safe/common formats)
+        $mimeMap = [
+            'jpg'  => ['image/jpeg', 'image/pjpeg'],
+            'jpeg' => ['image/jpeg', 'image/pjpeg'],
+            'png'  => ['image/png'],
+            'gif'  => ['image/gif'],
+            'txt'  => ['text/plain'],
+            'csv'  => ['text/csv', 'application/vnd.ms-excel', 'text/plain'],
+            'wav'  => ['audio/wav', 'audio/x-wav', 'audio/wave'],
+            'gsm'  => ['audio/x-gsm'],
+        ];
 
-        if (! in_array($ext, $allowed)) {
-            echo json_encode([
-                'success' => false,
-                'errors'  => 'File error',
-            ]);
-            exit;
+        // Get extension from original filename
+        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+
+        // Block dangerous extensions explicitly
+        $dangerous = ['php', 'phtml', 'phar', 'php5', 'php7', 'php8', 'cgi', 'pl', 'exe', 'sh', 'bash'];
+        if (in_array($ext, $dangerous, true)) {
+            self::jsonError();
+        }
+
+        // Check if extension is in the allowed list
+        if (!in_array($ext, $allowed, true)) {
+            self::jsonError();
+        }
+
+        // Check if we have a MIME map for this extension
+        if (!isset($mimeMap[$ext])) {
+            self::jsonError();
+        }
+
+        // Detect real MIME type
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime  = $finfo->file($tmpPath) ?: '';
+
+        // Block empty or generic MIME
+        if ($mime === '' || $mime === 'application/octet-stream') {
+            self::jsonError();
+        }
+
+        // Check if real MIME matches the allowed ones for this extension
+        if (!in_array($mime, $mimeMap[$ext], true)) {
+            self::jsonError();
+        }
+
+        // Extra check for images
+        if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'], true)) {
+            $img = @getimagesize($tmpPath);
+            if ($img === false) {
+                self::jsonError();
+            }
         }
 
         return $ext;
     }
+
+    private static function jsonError()
+    {
+        echo json_encode([
+            'success' => false,
+            'errors'  => 'File error',
+        ]);
+        Yii::app()->end();
+    }
+
     public static function isJson($string)
     {
         if (!is_string($string)) {

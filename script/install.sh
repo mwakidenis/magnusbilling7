@@ -141,8 +141,6 @@ make samples
 make config
 ldconfig
 
-
-chmod -R 1777 /tmp
  
 
 echo '
@@ -821,13 +819,9 @@ chmod +x /var/www/html/mbilling/protected/commands/*.sh
 chown -R asterisk:asterisk /var/lib/php/session*
 chown -R asterisk:asterisk /var/spool/asterisk/outgoing/
 chown -R asterisk:asterisk /etc/asterisk
-chmod -R 1777 /tmp
 mkdir -p /usr/local/src/magnus/monitor
 mkdir -p /usr/local/src/magnus/sounds
 mkdir -p /usr/local/src/magnus/backup
-mkdir -p /var/www/tmpmagnus
-chown -R asterisk:asterisk /var/www/tmpmagnus
-chmod -R 777 /var/www/tmpmagnus
 mv /usr/local/src/backup* /usr/local/src/magnus/backup
 chown -R asterisk:asterisk /usr/local/src/magnus/
 chmod -R 755 /usr/local/src/magnus/

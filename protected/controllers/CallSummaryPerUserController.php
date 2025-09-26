@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -50,7 +51,6 @@ class CallSummaryPerUserController extends Controller
         $this->abstractModel = CallSummaryPerUser::model();
         $this->titleReport   = Yii::t('zii', 'Summary Day User');
         parent::init();
-
     }
 
     public function recordsExtraSum($records = array())
@@ -132,10 +132,6 @@ class CallSummaryPerUserController extends Controller
 
         $this->paramsFilter[':keyusername'] = $_GET['id'];
 
-        $this->magnusFilesDirectory = '/var/www/tmpmagnus/';
-        $nameFileCsv                = $this->nameFileReport . time();
-        $pathCsv                    = $this->magnusFilesDirectory . $nameFileCsv . '.csv';
-
         $this->convertRelationFilter();
         $this->filter = preg_replace('/\isAgent \= 0 AND| isAgent \= 1 AND/', '', $this->filter);
         $columns      = 'u.username,CONCAT(firstname, " ",lastname),starttime,calledstation,sessiontime,real_sessiontime,buycost,sessionbill,trunkcode ';
@@ -166,7 +162,5 @@ class CallSummaryPerUserController extends Controller
         header('Content-Disposition: attachment; filename="' . Yii::t('zii', 'Summary Day User') . '_' . date('Y-m-d') . '.csv"');
 
         fpassthru($f);
-
     }
-
 }

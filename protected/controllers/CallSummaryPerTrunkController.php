@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -37,12 +38,11 @@ class CallSummaryPerTrunkController extends Controller
         $this->abstractModel = CallSummaryPerTrunk::model();
         $this->titleReport   = Yii::t('zii', 'Summary per Trunk');
         parent::init();
-
     }
 
     public function actionRead($asJson = true, $condition = null)
     {
-        if ( ! Yii::app()->session['isAdmin']) {
+        if (! Yii::app()->session['isAdmin']) {
             echo json_encode([
                 $this->nameRoot  => [],
                 $this->nameCount => 0,
@@ -121,12 +121,12 @@ class CallSummaryPerTrunkController extends Controller
     public function actionCsv()
     {
 
-        if ( ! AccessManager::getInstance($this->instanceModel->getModule())->canRead()) {
+        if (! AccessManager::getInstance($this->instanceModel->getModule())->canRead()) {
             header('HTTP/1.0 401 Unauthorized');
             die("Access denied to read in module:" . $this->instanceModel->getModule());
         }
 
-        if ( ! isset(Yii::app()->session['id_user'])) {
+        if (! isset(Yii::app()->session['id_user'])) {
             $info = 'User try export CSV without login';
             MagnusLog::insertLOG(7, $info);
             exit;
@@ -157,9 +157,6 @@ class CallSummaryPerTrunkController extends Controller
 
         $this->applyFilterToLimitedAdmin();
 
-        $this->magnusFilesDirectory = '/var/www/tmpmagnus/';
-        $nameFileCsv                = $this->nameFileReport . time();
-        $pathCsv                    = $this->magnusFilesDirectory . $nameFileCsv . '.csv';
 
         $this->convertRelationFilter();
 
@@ -170,7 +167,6 @@ class CallSummaryPerTrunkController extends Controller
             foreach ($this->paramsFilter as $key => $value) {
                 $command->bindValue($key, $value, PDO::PARAM_STR);
             }
-
         }
 
         //create a file pointer
@@ -190,12 +186,11 @@ class CallSummaryPerTrunkController extends Controller
         header('Content-Disposition: attachment; filename="' . $this->modelName . '_' . date('Y-m-d') . '.csv"');
 
         fpassthru($f);
-
     }
     public function actionExportCsvCalls()
     {
 
-        if ( ! Yii::app()->session['isAdmin']) {
+        if (! Yii::app()->session['isAdmin']) {
             exit;
         }
 
@@ -206,9 +201,7 @@ class CallSummaryPerTrunkController extends Controller
 
         $this->paramsFilter[':keytrunkcode'] = $trunkcode;
 
-        $this->magnusFilesDirectory = '/var/www/tmpmagnus/';
-        $nameFileCsv                = $this->nameFileReport . time();
-        $pathCsv                    = $this->magnusFilesDirectory . $nameFileCsv . '.csv';
+
 
         $this->convertRelationFilter();
         $this->filter = preg_replace('/\isAgent \= 0 AND| isAgent \= 1 AND/', '', $this->filter);
@@ -222,7 +215,6 @@ class CallSummaryPerTrunkController extends Controller
             foreach ($this->paramsFilter as $key => $value) {
                 $command->bindValue($key, $value, PDO::PARAM_STR);
             }
-
         }
 
         //create a file pointer
@@ -242,7 +234,6 @@ class CallSummaryPerTrunkController extends Controller
         header('Content-Disposition: attachment; filename="' . $this->modelName . '_' . date('Y-m-d') . '.csv"');
 
         fpassthru($f);
-
     }
 
     public function actionClear()
@@ -272,7 +263,5 @@ class CallSummaryPerTrunkController extends Controller
             $this->nameSuccess => true,
             $this->nameMsg     => $this->msgSuccess,
         ]);
-
     }
-
 }

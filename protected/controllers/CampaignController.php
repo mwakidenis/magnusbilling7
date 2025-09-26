@@ -120,7 +120,7 @@ class CampaignController extends Controller
             if (file_exists($this->uploaddir . 'idCampaign_' . $model->id . '.wav')) {
                 unlink($this->uploaddir . 'idCampaign_' . $model->id . '.wav');
             }
-            $typefile   = Util::valid_extension($_FILES["audio"]["name"], ['gsm', 'wav']);
+            $typefile = Util::validExtension($_FILES['audio']['tmp_name'], $_FILES["audio"]["name"], ['gsm', 'wav']);
             $uploadfile = $this->uploaddir . 'idCampaign_' . $model->id . '.' . $typefile;
             move_uploaded_file($_FILES["audio"]["tmp_name"], $uploadfile);
         }
@@ -128,7 +128,7 @@ class CampaignController extends Controller
             if (file_exists($this->uploaddir . 'idCampaign_' . $model->id . '_2.wav')) {
                 unlink($this->uploaddir . 'idCampaign_' . $model->id . '_2.wav');
             }
-            $typefile   = Util::valid_extension($_FILES["audio_2"]["name"], ['gsm', 'wav']);
+            $typefile = Util::validExtension($_FILES['audio']['tmp_name'], $_FILES["audio_2"]["name"], ['gsm', 'wav']);
             $uploadfile = $this->uploaddir . 'idCampaign_' . $model->id . '_2.' . $typefile;
             move_uploaded_file($_FILES["audio_2"]["tmp_name"], $uploadfile);
         }
@@ -264,7 +264,7 @@ class CampaignController extends Controller
             if (file_exists($this->uploaddir . 'idCampaign_' . $id_campaign . '.wav')) {
                 unlink($this->uploaddir . 'idCampaign_' . $id_campaign . '.wav');
             }
-            $typefile   = Util::valid_extension($_FILES["audio_path"]["name"], ['gsm', 'wav']);
+            $typefile = Util::validExtension($_FILES['audio_path']['tmp_name'], $_FILES["audio_path"]["name"], ['gsm', 'wav']);
             $uploadfile = $this->uploaddir . 'idCampaign_' . $id_campaign . '.' . $typefile;
             move_uploaded_file($_FILES["audio_path"]["tmp_name"], $uploadfile);
         }

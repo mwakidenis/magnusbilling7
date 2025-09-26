@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Rate".
  *
@@ -91,7 +92,7 @@ class RateController extends Controller
         $this->titleReport = Yii::t('zii', 'Tariffs');
 
         parent::init();
-        if ( ! Yii::app()->session['isAdmin']) {
+        if (! Yii::app()->session['isAdmin']) {
             $this->extraValues = [
                 'idPlan'   => 'name',
                 'idPrefix' => 'destination,prefix',
@@ -160,7 +161,7 @@ class RateController extends Controller
     public function actionImportFromCsv()
     {
 
-        if ( ! Yii::app()->session['id_user'] || Yii::app()->session['isClient'] == true) {
+        if (! Yii::app()->session['id_user'] || Yii::app()->session['isClient'] == true) {
             exit();
         }
         $values = $this->getAttributesRequest();
@@ -175,6 +176,8 @@ class RateController extends Controller
 
     public function importPrefixs($values)
     {
+
+        Util::validExtension($_FILES['file']['tmp_name'], $_FILES["file"]["name"], ['csv']);
 
         if (Yii::app()->session['isAdmin']) {
 
@@ -191,7 +194,6 @@ class RateController extends Controller
                     'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                 ]);
                 exit;
-
             }
             $info = 'Module: prefix  {}';
             MagnusLog::insertLOG(5, $info);
@@ -200,13 +202,7 @@ class RateController extends Controller
     public function importRates($values)
     {
 
-        if ( ! isset($_FILES['file']['tmp_name']) || strlen($_FILES['file']['tmp_name']) < 10) {
-            echo json_encode([
-                $this->nameSuccess => false,
-                'errors'           => Yii::t('zii', 'Please select a CSV file'),
-            ]);
-            exit;
-        }
+        Util::validExtension($_FILES['file']['tmp_name'], $_FILES["file"]["name"], ['csv']);
 
         $fn        = fopen($_FILES['file']['tmp_name'], "r");
         $firstLine = fgets($fn, 1000);
@@ -225,7 +221,7 @@ class RateController extends Controller
 
         $modelPrefix = Prefix::model()->find(1);
 
-        if ( ! isset($modelPrefix->id)) {
+        if (! isset($modelPrefix->id)) {
             $this->importPrefixs($values);
             $modelPrefix = Prefix::model()->find(1);
         }
@@ -247,20 +243,18 @@ class RateController extends Controller
                     'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                 ]);
                 exit;
-
             }
 
             $info = 'Module: rateagent  {}';
             MagnusLog::insertLOG(5, $info);
-
         } else if (Yii::app()->session['isAdmin']) {
 
             $sql = "LOAD DATA LOCAL INFILE '" . $_FILES['file']['tmp_name'] . "'" .
-            " IGNORE INTO TABLE pkg_rate" .
-            " CHARACTER SET UTF8 " .
-            " FIELDS TERMINATED BY '" . $values['delimiter'] . "'" .
-            " LINES TERMINATED BY '\\r\\n' (dialprefix,destination,rateinitial,initblock,billingblock,minimal_time_charge,connectcharge,disconnectcharge,package_offer)" .
-            " SET id_plan = " . $values['id_plan'] . ", id_trunk_group = " . $values['id_trunk_group'] . ", id_prefix = " . $modelPrefix->id . "";
+                " IGNORE INTO TABLE pkg_rate" .
+                " CHARACTER SET UTF8 " .
+                " FIELDS TERMINATED BY '" . $values['delimiter'] . "'" .
+                " LINES TERMINATED BY '\\r\\n' (dialprefix,destination,rateinitial,initblock,billingblock,minimal_time_charge,connectcharge,disconnectcharge,package_offer)" .
+                " SET id_plan = " . $values['id_plan'] . ", id_trunk_group = " . $values['id_trunk_group'] . ", id_prefix = " . $modelPrefix->id . "";
 
             try {
                 Yii::app()->db->createCommand($sql)->execute();
@@ -270,7 +264,6 @@ class RateController extends Controller
                     'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                 ]);
                 exit;
-
             }
 
             $info = 'Module: rate  {}';
@@ -280,7 +273,6 @@ class RateController extends Controller
             try {
                 Yii::app()->db->createCommand($sql)->execute();
             } catch (Exception $e) {
-
             }
 
             $sql = "UPDATE pkg_rate t JOIN pkg_prefix p ON t.dialprefix = p.prefix SET t.id_prefix = p.id, t.dialprefix = NULL, t.destination = NULL WHERE dialprefix > 0 AND p.prefix > 0";
@@ -295,7 +287,6 @@ class RateController extends Controller
                     'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                 ]);
                 exit;
-
             }
 
             $modelRate = Rate::model()->findAll('dialprefix > 0');
@@ -317,7 +308,6 @@ class RateController extends Controller
                             'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                         ]);
                         exit;
-
                     }
                 }
 
@@ -332,7 +322,6 @@ class RateController extends Controller
                         'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                     ]);
                     exit;
-
                 }
             }
 
@@ -345,9 +334,7 @@ class RateController extends Controller
                     'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                 ]);
                 exit;
-
             }
-
         }
     }
 }

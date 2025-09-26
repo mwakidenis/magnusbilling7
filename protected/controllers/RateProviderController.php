@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -33,11 +34,13 @@ class RateProviderController extends Controller
             'table'       => 'pkg_provider',
             'pk'          => 'id',
             'fieldReport' => 'provider_name',
-        ], 'id_prefix' => [
+        ],
+        'id_prefix' => [
             'table'       => 'pkg_prefix',
             'pk'          => 'id',
             'fieldReport' => 'destination',
-        ], 't.id' => [
+        ],
+        't.id' => [
             'table'       => 'pkg_prefix',
             'pk'          => 'id',
             'fieldReport' => 'destination',
@@ -92,13 +95,12 @@ class RateProviderController extends Controller
         if (preg_match("/$destino/", $_GET['columns'])) {
             $_GET['columns'] = preg_replace("/$destino/", $destinoNew, $_GET['columns']);
         }
-
     }
 
     public function actionImportFromCsv()
     {
 
-        if ( ! Yii::app()->session['id_user'] || Yii::app()->session['isClient'] == true) {
+        if (! Yii::app()->session['id_user'] || Yii::app()->session['isClient'] == true) {
             exit();
         }
         $values = $this->getAttributesRequest();
@@ -113,6 +115,7 @@ class RateProviderController extends Controller
 
     public function importPrefixs($values)
     {
+        Util::validExtension($_FILES['file']['tmp_name'], $_FILES["file"]["name"], ['csv']);
         $sql = "LOAD DATA LOCAL INFILE '" . $_FILES['file']['tmp_name'] . "'" .
             " IGNORE INTO TABLE pkg_prefix" .
             " CHARACTER SET UTF8 " .
@@ -126,15 +129,14 @@ class RateProviderController extends Controller
                 'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
             ]);
             exit;
-
         }
-
     }
 
     public function importRates($values)
     {
 
-        if ( ! isset($_FILES['file']['tmp_name']) || strlen($_FILES['file']['tmp_name']) < 10) {
+        Util::validExtension($_FILES['file']['tmp_name'], $_FILES["file"]["name"], ['csv']);
+        if (! isset($_FILES['file']['tmp_name']) || strlen($_FILES['file']['tmp_name']) < 10) {
             echo json_encode([
                 $this->nameSuccess => false,
                 'errors'           => Yii::t('zii', 'Please select a CSV file'),
@@ -159,7 +161,7 @@ class RateProviderController extends Controller
 
         $modelPrefix = Prefix::model()->find(1);
 
-        if ( ! isset($modelPrefix->id)) {
+        if (! isset($modelPrefix->id)) {
             $this->importPrefixs($values);
             $modelPrefix = Prefix::model()->find(1);
         }
@@ -181,14 +183,12 @@ class RateProviderController extends Controller
                 'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
             ]);
             exit;
-
         }
 
         $sql = "DELETE FROM pkg_prefix WHERE prefix < 1";
         try {
             Yii::app()->db->createCommand($sql)->execute();
         } catch (Exception $e) {
-
         }
 
         $sql = "UPDATE pkg_rate_provider t JOIN pkg_prefix p ON t.dialprefix = p.prefix SET t.id_prefix = p.id, t.dialprefix = NULL, t.destination = NULL WHERE dialprefix IS NOT NULL AND p.prefix > 0";
@@ -200,7 +200,6 @@ class RateProviderController extends Controller
                 'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
             ]);
             exit;
-
         }
 
         $modelRate = RateProvider::model()->findAll('dialprefix IS NOT NULL');
@@ -222,7 +221,6 @@ class RateProviderController extends Controller
                         'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                     ]);
                     exit;
-
                 }
             }
 
@@ -235,11 +233,9 @@ class RateProviderController extends Controller
                     'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
                 ]);
                 exit;
-
             }
 
             RateProvider::model()->updateAll(['dialprefix' => null, 'destination' => null], 'dialprefix IS NOT NULL');
-
         }
 
         $sql = "UPDATE pkg_rate_provider SET buyrateinitblock = 1 WHERE buyrateinitblock = 0; UPDATE pkg_rate_provider SET buyrateincrement = 1 WHERE buyrateincrement = 0;";
@@ -251,8 +247,6 @@ class RateProviderController extends Controller
                 'errors'           => Yii::t('zii', 'MYSQL message.') . "\n\n" . print_r($e, true),
             ]);
             exit;
-
         }
     }
-
 }

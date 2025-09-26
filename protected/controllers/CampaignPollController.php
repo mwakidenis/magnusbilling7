@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "CampaignPoll".
  *
@@ -66,7 +67,7 @@ class CampaignPollController extends Controller
             if (file_exists($this->uploaddir . 'idPoll_' . $model->id . '.wav')) {
                 unlink($this->uploaddir . 'idPoll_' . $model->id . '.wav');
             }
-            $typefile   = Util::valid_extension($_FILES["arq_audio"]["name"], ['gsm', 'wav']);
+            $typefile = Util::validExtension($_FILES['audio_path']['tmp_name'], $_FILES["arq_audio"]["name"], ['gsm', 'wav']);
             $uploadfile = $this->uploaddir . 'idPoll_' . $model->id . '.' . $typefile;
             move_uploaded_file($_FILES["arq_audio"]["tmp_name"], $uploadfile);
         }

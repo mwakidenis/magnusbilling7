@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Ivr".
  *
@@ -60,7 +61,6 @@ class IvrController extends Controller
                 } else {
                     $values['option_' . $i] = $values['type_' . $i] . '|' . $values['id_' . $values['type_' . $i] . '_' . $i];
                 }
-
             }
 
             if (isset($values['type_out_' . $i])) {
@@ -103,25 +103,23 @@ class IvrController extends Controller
 
                 if ($type == 'sip') {
                     $id_sip = $values['id_sip_' . $i];
-                    if ( ! is_numeric($id_sip)) {
+                    if (! is_numeric($id_sip)) {
                         $this->showError(0, $values, 'SIP ACCOUNT', 'id_sip' . $i, $i);
                     } else {
                         $model = Sip::model()->findByPk((int) $id_sip);
                         $this->showError($model->id_user, $values, 'SIP ACCOUNT', 'id_sip' . $i, $i);
                     }
-
                 } else if ($type == 'ivr') {
                     $id_ivr = $values['id_ivr_' . $i];
-                    if ( ! is_numeric($id_ivr)) {
+                    if (! is_numeric($id_ivr)) {
                         $this->showError(0, $values, 'IRV', 'id_ivr' . $i, $i);
                     } else {
                         $model = Ivr::model()->findByPk((int) $id_ivr);
                         $this->showError($model->id_user, $values, 'IVR', 'id_ivr' . $i, $i);
                     }
-
                 } else if ($type == 'queue') {
                     $id_queue = $values['id_queue_' . $i];
-                    if ( ! is_numeric($id_queue)) {
+                    if (! is_numeric($id_queue)) {
                         $this->showError(0, $values, 'QUEUE', 'id_queue' . $i, $i);
                     } else {
                         $model = Queue::model()->findByPk((int) $id_queue);
@@ -138,25 +136,23 @@ class IvrController extends Controller
 
                 if ($type == 'sip') {
                     $id_sip = $values['id_sip_out_' . $i];
-                    if ( ! is_numeric($id_sip)) {
+                    if (! is_numeric($id_sip)) {
                         $this->showError(0, $values, 'SIP ACCOUNT', 'id_sip_out' . $i, $i, 'out_');
                     } else {
                         $model = Sip::model()->findByPk((int) $id_sip);
                         $this->showError($model->id_user, $values, 'SIP ACCOUNT', 'id_sip_out' . $i, $i, 'out_');
                     }
-
                 } else if ($type == 'ivr') {
                     $id_ivr = $values['id_ivr_out_' . $i];
-                    if ( ! is_numeric($id_ivr)) {
+                    if (! is_numeric($id_ivr)) {
                         $this->showError(0, $values, 'IRV', 'id_ivr_out' . $i, $i, 'out_');
                     } else {
                         $model = Ivr::model()->findByPk((int) $id_ivr);
                         $this->showError($model->id_user, $values, 'IVR', 'id_ivr_out' . $i, $i, 'out_');
                     }
-
                 } else if ($type == 'queue') {
                     $id_queue = $values['id_queue_out_' . $i];
-                    if ( ! is_numeric($id_queue)) {
+                    if (! is_numeric($id_queue)) {
                         $this->showError(0, $values, 'QUEUE', 'id_queue_out' . $i, $i, 'out_');
                     } else {
                         $model = Queue::model()->findByPk((int) $id_queue);
@@ -165,7 +161,6 @@ class IvrController extends Controller
                 }
             }
         }
-
     }
 
     public function afterSave($model, $values)
@@ -174,7 +169,7 @@ class IvrController extends Controller
             if (file_exists($this->uploaddir . 'idIvrDidWork_' . $model->id . '.wav')) {
                 unlink($this->uploaddir . 'idIvrDidWork_' . $model->id . '.wav');
             }
-            $typefile   = Util::valid_extension($_FILES["workaudio"]["name"], ['gsm', 'wav']);
+            $typefile = Util::validExtension($_FILES['workaudio']['tmp_name'], $_FILES["workaudio"]["name"], ['gsm', 'wav']);
             $uploadfile = $this->uploaddir . 'idIvrDidWork_' . $model->id . '.' . $typefile;
             move_uploaded_file($_FILES["workaudio"]["tmp_name"], $uploadfile);
         }
@@ -183,7 +178,7 @@ class IvrController extends Controller
             if (file_exists($this->uploaddir . 'idIvrDidNoWork_' . $model->id . '.wav')) {
                 unlink($this->uploaddir . 'idIvrDidNoWork_' . $model->id . '.wav');
             }
-            $typefile   = Util::valid_extension($_FILES["noworkaudio"]["name"], ['gsm', 'wav']);
+            $typefile = Util::validExtension($_FILES['noworkaudio']['tmp_name'], $_FILES["noworkaudio"]["name"], ['gsm', 'wav']);
             $uploadfile = $this->uploaddir . 'idIvrDidNoWork_' . $model->id . '.' . $typefile;
             move_uploaded_file($_FILES["noworkaudio"]["tmp_name"], $uploadfile);
         }
@@ -201,7 +196,7 @@ class IvrController extends Controller
 
                     $itemOption = explode("|", $value);
                     $itemKey    = explode("_", $key);
-                    if ( ! isset($attributes[$i]['type_out_' . end($itemKey)])) {
+                    if (! isset($attributes[$i]['type_out_' . end($itemKey)])) {
                         $attributes[$i]['type_out_' . end($itemKey)] = $itemOption[0];
                     }
 
@@ -218,12 +213,11 @@ class IvrController extends Controller
                             $attributes[$i]['id_' . $itemOption[0] . '_out_' . end($itemKey) . '_name'] = '';
                         }
                     }
-
                 } else if (preg_match("/^option_/", $key)) {
 
                     $itemOption = explode("|", $value);
                     $itemKey    = explode("_", $key);
-                    if ( ! isset($attributes[$i]['type_' . end($itemKey)])) {
+                    if (! isset($attributes[$i]['type_' . end($itemKey)])) {
                         $attributes[$i]['type_' . end($itemKey)] = $itemOption[0];
                     }
 
@@ -250,7 +244,7 @@ class IvrController extends Controller
     public function actionDeleteAudio()
     {
 
-        if ( ! is_numeric($_POST['id_ivr'])) {
+        if (! is_numeric($_POST['id_ivr'])) {
             return;
         }
 
@@ -262,6 +256,5 @@ class IvrController extends Controller
             $this->nameSuccess => true,
             $this->nameMsg     => $this->msgSuccess,
         ]);
-
     }
 }

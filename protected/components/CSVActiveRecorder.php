@@ -15,9 +15,7 @@ class CSVActiveRecorder
     {
 
         $this->model = $model;
-        if (isset($data['filename'])) {
-            chmod($data['filename'], 0777);
-        }
+
 
         $this->translations     = require __DIR__ . '/../../resources/locale/php/en/csv-translate.php';
         $this->data             = $data;
@@ -45,41 +43,46 @@ class CSVActiveRecorder
             $this->addError($e->getMessage());
             return false;
         }
-
     }
 
     private function createSQL($tableName)
     {
         $sql = "LOAD DATA LOCAL INFILE '" . $this->data['filename'] . "'" .
-        " INTO TABLE " . $tableName .
-        " CHARACTER SET UTF8 " .
-        " FIELDS TERMINATED BY '" . $this->data['boundaries']['delimiter'] . "'" .
+            " INTO TABLE " . $tableName .
+            " CHARACTER SET UTF8 " .
+            " FIELDS TERMINATED BY '" . $this->data['boundaries']['delimiter'] . "'" .
             " LINES TERMINATED BY '\\r\\n'" .
             " IGNORE 1 LINES";
 
-        $sql .= " (" . implode(",", array_map(
-            function ($v) {
-                return '@' . $v;
-            },
-            array_keys($this->data['columns'])
-        )
+        $sql .= " (" . implode(
+            ",",
+            array_map(
+                function ($v) {
+                    return '@' . $v;
+                },
+                array_keys($this->data['columns'])
+            )
         ) . ")";
 
         $columns = $this->data['columns'];
-        $sql .= " SET " . implode(" ", array_map(
-            function ($v) use ($columns) {
-                return $columns[$v] . " = @" . $v . ", ";
-            },
-            array_keys($this->data["columns"])
-        )
+        $sql .= " SET " . implode(
+            " ",
+            array_map(
+                function ($v) use ($columns) {
+                    return $columns[$v] . " = @" . $v . ", ";
+                },
+                array_keys($this->data["columns"])
+            )
         );
         if ($this->data["additionalParams"] > 0) {
-            $sql .= " " . implode(" ", array_map(
-                function ($v) {
-                    return $v['key'] . '= "' . $v['value'] . '",';
-                },
-                $this->additionalParams
-            )
+            $sql .= " " . implode(
+                " ",
+                array_map(
+                    function ($v) {
+                        return $v['key'] . '= "' . $v['value'] . '",';
+                    },
+                    $this->additionalParams
+                )
             );
         }
 
@@ -101,10 +104,9 @@ class CSVActiveRecorder
                     $foundTranslation          = true;
                 }
             }
-            if ( ! $foundTranslation) {
+            if (! $foundTranslation) {
                 $resultColumns[$csvColumn] = $csvColumn;
             }
-
         }
         return $resultColumns;
     }

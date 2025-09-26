@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Prefix".
  *
@@ -42,11 +43,13 @@ class PrefixController extends Controller
     public function actionImportFromCsv()
     {
 
-        if ( ! Yii::app()->session['id_user'] || Yii::app()->session['isAdmin'] != true) {
+        if (! Yii::app()->session['id_user'] || Yii::app()->session['isAdmin'] != true) {
             exit();
         }
 
         $values = $this->getAttributesRequest();
+
+        Util::validExtension($_FILES['file']['tmp_name'], $_FILES["file"]["name"], ['csv']);
 
         $handle = fopen($_FILES['file']['tmp_name'], "r");
         $this->importPrefixs($handle, $values);
@@ -75,7 +78,7 @@ class PrefixController extends Controller
             }
 
             if (isset($row[1])) {
-                if ( ! isset($row[0]) || $row[0] == '') {
+                if (! isset($row[0]) || $row[0] == '') {
                     echo json_encode([
                         $this->nameSuccess => false,
                         'errors'           => 'Prefix not exit in the CSV file . Line: ' . print_r($row, true),
@@ -93,7 +96,6 @@ class PrefixController extends Controller
                     if ($resultPrefix[0]['destination'] != $destination) {
                         Prefix::model()->updateDestination($prefix, $destination);
                     }
-
                 } else {
                     $sqlPrefix[] = "('$prefix', '$destination')";
                 }
@@ -131,5 +133,4 @@ class PrefixController extends Controller
 
         return $this->extraFilterCustom($filter);
     }
-
 }

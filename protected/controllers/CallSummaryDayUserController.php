@@ -136,10 +136,6 @@ class CallSummaryDayUserController extends Controller
 
         $this->paramsFilter[':keyusername'] = $username;
 
-        $this->magnusFilesDirectory = '/var/www/tmpmagnus/';
-        $nameFileCsv                = $this->nameFileReport . time();
-        $pathCsv                    = $this->magnusFilesDirectory . $nameFileCsv . '.csv';
-
         $this->convertRelationFilter();
         $this->filter = preg_replace('/\isAgent \= 0 AND| isAgent \= 1 AND/', '', $this->filter);
         $columns      = 'u.username,CONCAT(firstname, " ",lastname),starttime,calledstation,sessiontime,real_sessiontime,buycost,sessionbill,trunkcode ';

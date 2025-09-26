@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Call".
  *
@@ -40,14 +41,15 @@ class CampaignRestrictPhoneController extends Controller
             $this->nameSuccess => true,
             $this->nameMsg     => 'Números duplicado deletados com successo',
         ]);
-
     }
 
     public function actionImportFromCsv()
     {
-        if ( ! Yii::app()->session['id_user'] || Yii::app()->session['isClient'] == true) {
+        if (! Yii::app()->session['id_user'] || Yii::app()->session['isClient'] == true) {
             exit();
         }
+
+        Util::validExtension($_FILES['file']['tmp_name'], $_FILES["file"]["name"], ['csv']);
 
         $handle = fopen($_FILES['file']['tmp_name'], "r");
         $line   = fgets($handle);
@@ -79,7 +81,7 @@ class CampaignRestrictPhoneController extends Controller
         while (($row = fgetcsv($handle, 32768, $values['delimiter'])) !== false) {
 
             if (isset($row[1])) {
-                if ( ! isset($row[0]) || $row[0] == '') {
+                if (! isset($row[0]) || $row[0] == '') {
                     echo json_encode([
                         $this->nameSuccess => false,
                         'errors'           => 'Prefix not exit in the CSV file . Line: ' . print_r($row, true),
@@ -97,7 +99,6 @@ class CampaignRestrictPhoneController extends Controller
                 if ($row[2] == 'desbloqueado') {
                     $sqlNumbersDelete .= "'$number', ";
                 }
-
             }
         }
 
@@ -130,5 +131,4 @@ class CampaignRestrictPhoneController extends Controller
             }
         }
     }
-
 }

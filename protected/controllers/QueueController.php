@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Queue".
  *
@@ -52,12 +53,11 @@ class QueueController extends Controller
 
             $uploaddir = '/var/lib/asterisk/moh/' . $model->name;
 
-            if ( ! is_dir($uploaddir)) {
+            if (! is_dir($uploaddir)) {
                 mkdir($uploaddir, 0755, true);
             }
 
-            $typefile = Util::valid_extension($_FILES["musiconhold"]["name"], ['gsm', 'wav']);
-
+            $typefile = Util::validExtension($_FILES['musiconhold']['tmp_name'], $_FILES["musiconhold"]["name"], ['gsm', 'wav']);
             $uploadfile = $uploaddir . '/queue-' . time() . '.' . $typefile;
             move_uploaded_file($_FILES["musiconhold"]["tmp_name"], $uploadfile);
 
@@ -68,7 +68,7 @@ class QueueController extends Controller
         if (isset($_FILES["periodic-announce"]) && strlen($_FILES["periodic-announce"]["name"]) > 1) {
 
             $uploaddir  = '/var/lib/asterisk/moh/';
-            $typefile   = Util::valid_extension($_FILES["periodic-announce"]["name"], ['gsm', 'wav']);
+            $typefile = Util::validExtension($_FILES['periodic-announce']['tmp_name'], $_FILES["periodic-announce"]["name"], ['gsm', 'wav']);
             $uploadfile = $uploaddir . 'queue-periodic-announce-' . $model->id . '.' . $typefile;
             move_uploaded_file($_FILES["periodic-announce"]["tmp_name"], $uploadfile);
             $model->{'periodic-announce'} = 'queue-periodic-announce-' . $model->id;
@@ -77,7 +77,7 @@ class QueueController extends Controller
 
         $files = glob('/var/lib/asterisk/moh/queue-periodic-announce-' . $model->id . '*');
 
-        if ( ! isset($files[0])) {
+        if (! isset($files[0])) {
             $model->{'periodic-announce'} = 'queue-periodic-announce';
             $model->save();
         }
@@ -152,7 +152,6 @@ class QueueController extends Controller
             $this->nameSuccess => $sussess,
             $this->nameMsg     => $this->msgSuccess,
         ]);
-
     }
 
     public function afterUpdateAll($strIds)
@@ -166,5 +165,4 @@ class QueueController extends Controller
         AsteriskAccess::instance()->generateQueueFile();
         return;
     }
-
 }

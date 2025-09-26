@@ -125,7 +125,7 @@ class RefillController extends Controller
             unlink('/var/www/html/mbilling/resources/images/refill/' . $model->id . '.jpeg');
             unlink('/var/www/html/mbilling/resources/images/refill/' . $model->id . '.jpg');
 
-            $typefile = Util::valid_extension($_FILES["image"]["name"], ['png', 'jpeg', 'jpg']);
+            $typefile = Util::validExtension($_FILES["image"]["tmp_name"], $_FILES["image"]["name"], ['png', 'jpeg', 'jpg']);
 
             $uploadfile = 'resources/images/refill/' . $model->id . '.' . $typefile;
 

@@ -270,9 +270,7 @@ class CallController extends Controller
 
             $folder = $this->magnusFilesDirectory . 'monitor';
 
-            if (! file_exists($folder)) {
-                mkdir($folder, 0777, true);
-            }
+
             array_map('unlink', glob("$folder/*"));
 
             if (isset($modelCdr[0]->id)) {
