@@ -2111,6 +2111,38 @@ exten => s,1,Set(MASTER_CHANNEL(TRUNKANSWERTIME)=\${EPOCH})
             $version = '7.8.5.3';
             $this->update($version);
         }
+        //2025-10-25
+        if ($version == '7.8.5.3') {
+            $sql = "INSERT INTO pkg_module VALUES
+                (13, 't(''Voice Broadcasting'')', NULL, 'x-fa fa-arrow-right', NULL,8),
+                (41, 't(\'Campaigns\')', 'campaign', 'x-fa fa-desktop', 13, 1),
+                (42, 't(\'Polls\')', 'campaignpoll', 'x-fa fa-desktop', 13, 4),
+                (43, 't(\'Phonebooks\')', 'phonebook', 'x-fa fa-desktop', 13, 2),
+                (44, 't(\'Phonenumbers\')', 'phonenumber', 'x-fa fa-desktop', 13, 3),
+                (49, 't(\'SMS\')', 'sms', 'x-fa fa-desktop', 13, 7),
+                (57, 't(\'Polls Reports\')', 'campaignpollinfo', 'x-fa fa-desktop', 13, 5),
+                (62, 't(\'Restrict Phone\')', 'campaignrestrictphone', 'x-fa fa-desktop', 13, 6),
+                (63, 't(\'Quick Campaign\')', 'campaignsend', 'x-fa fa-desktop', 13, 8),
+                (NULL, 't(\'Campaigns DashBoard\')', 'campaigndashboard', 'x-fa fa-desktop', 13, 11),
+                (NULL, 't(\'Campaign Report\')', 'campaignreport', 'x-fa fa-desktop', 13, 12);";
+            $this->executeDB($sql);
+
+
+            $sql = "INSERT INTO `pkg_group_module` (`id_group`, `id_module`, `action`, `show_menu`, `createShortCut`, `createQuickStart`) VALUES
+            (1, 13, 'crud', 1, 0, 0),
+            (1, 41, 'crud', 1, 0, 0),
+            (1, 42, 'crud', 1, 0, 0),
+            (1, 43, 'crud', 1, 0, 0),
+            (1, 44, 'crud', 1, 0, 0),
+            (1, 49, 'crud', 1, 0, 0),
+            (1, 57, 'crud', 1, 0, 0),
+            (1, 62, 'crud', 1, 0, 0),
+            (1, 63, 'crud', 1, 0, 0);";
+            $this->executeDB($sql);
+
+            $version = '7.8.5.4';
+            $this->update($version);
+        }
     }
 
     public function executeDB($sql)

@@ -100,7 +100,6 @@ mkdir -p /usr/local/src/magnus
 chown -R asterisk:asterisk /var/run/magnus/
 chown -R root:root /root
 chown -R mysql:mysql /var/lib/mysql
-chmod -R 1777 /tmp
 chmod -R 755 /usr/local/src/magnus
 
 
@@ -128,16 +127,6 @@ chmod 755 /var/lib/mysql-files
 
 
 /var/www/html/mbilling/protected/commands/clear_memory
-if [[ -e /var/www/html/mbilling/resources/images/lock-screen-background.jpg ]]; then
-	for color in black blue gray orange purple red yellow green
-	do
-		for type in crisp neptune triton
-		do
-			chmod -R 755 /var/www/html/mbilling/$color-$type/resources/images/
-			yes | cp -rf /var/www/html/mbilling/resources/images/lock-screen-background.jpg /var/www/html/mbilling/$color-$type/resources/images/
-		done	
-	done	
-fi
 
 rm -rf /var/www/html/mbilling/protected/controllers/Transfer*
 rm -rf /var/www/html/mbilling/protected/controllers/SendCredit*
