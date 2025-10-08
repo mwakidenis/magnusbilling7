@@ -308,7 +308,7 @@ class Util
     {
         // Extension -> MIME map (only safe/common formats)
         $mimeMap = [
-            'jpg'  => ['image/jpeg', 'image/pjpeg'],
+            'jpg'  => ['image/jpeg', 'image/pjpeg','image/webp'],
             'jpeg' => ['image/jpeg', 'image/pjpeg'],
             'png'  => ['image/png'],
             'gif'  => ['image/gif'],
@@ -348,25 +348,25 @@ class Util
 
         // Check if real MIME matches the allowed ones for this extension
         if (!in_array($mime, $mimeMap[$ext], true)) {
-            self::jsonError();
+            self::jsonError('MIME NOT matches the allowed ones for this extension '.$mime);
         }
 
         // Extra check for images
         if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'], true)) {
             $img = @getimagesize($tmpPath);
             if ($img === false) {
-                self::jsonError();
+                self::jsonError('ext is not image '.$ext);
             }
         }
 
         return $ext;
     }
 
-    private static function jsonError()
+    private static function jsonError($msg='File error')
     {
         echo json_encode([
             'success' => false,
-            'errors'  => 'File error',
+            'errors'  => $msg,
         ]);
         Yii::app()->end();
     }

@@ -81,10 +81,15 @@ class sqlInject
                     $code = strtolower($code);
                     if (Util::isJson($value)) {
                         $value = json_decode($value);
+                        $value = (array) $value;
                     }
 
                     if (is_array($value)) {
                         foreach ($value as $key => $valuearray) {
+
+                            if (is_object($valuearray)) {
+                                $valuearray = (array) $valuearray;
+                            }
 
                             if (is_array($valuearray)) {
                                 foreach ($valuearray as $key => $value) {

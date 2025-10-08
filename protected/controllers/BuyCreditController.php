@@ -97,8 +97,6 @@ class BuyCreditController extends Controller
                 $modelMethodPay->url = preg_replace("/\%$key\%/", $modelUser->$key, $modelMethodPay->url);
             }
             header('Location: ' . $modelMethodPay->url);
-        } elseif ($modelMethodPay->payment_method == 'SuperLogica') {
-            SLUserSave::criarBoleto($modelMethodPay, $modelUser);
         } else {
             $this->render(strtolower($modelMethodPay->payment_method), [
                 'modelMethodPay' => $modelMethodPay,
@@ -386,6 +384,3 @@ class BuyCreditController extends Controller
         ]);
     }
 }
-
-
-

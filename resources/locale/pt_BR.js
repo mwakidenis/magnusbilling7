@@ -20,7 +20,7 @@ Locale.load({
     'ALERT: Do you really active this service?': 'ALERTA: Você realmente quer ativar este serviço?',
     'ALERT: Do you really want cancel this service to this user?': 'ALERTA: Você realmente quer cancelar este serviço para este usuário?',
     'ALERT: This action was to return the balance, referring to the days not used. Do you confirm?': 'ALERTA: Esta opção vai devolver o crédito referente aos dias não usado. Você confirma isso?',
-    'ALOC all calls': 'ALOC',
+    'ALOC all calls': 'ACD',
     'AMD': 'AMD',
     'API': 'API',
     'ASR': 'ASR',

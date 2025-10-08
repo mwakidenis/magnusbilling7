@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -102,7 +103,6 @@ class CallbackAgi
                         system("mv $arquivo_call /var/spool/asterisk/outgoing/$aleatorio.call");
 
                         $agi->answer();
-
                     }
                 } else {
                     $agi->verbose("NO TARIFF FOUND");
@@ -114,7 +114,7 @@ class CallbackAgi
         exit;
     }
 
-    public function callback0800($agi, $MAGNUS, $CalcAgi, $DidAgi)
+    public static function callback0800($agi, $MAGNUS, $CalcAgi, $DidAgi)
     {
 
         $agi->verbose("MAGNUS 0800 CALLBACK");
@@ -141,7 +141,7 @@ class CallbackAgi
         $agi->verbose($sql, 25);
         $MAGNUS->modelSip = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
 
-        if ( ! isset($MAGNUS->modelSip->id)) {
+        if (! isset($MAGNUS->modelSip->id)) {
             $agi->verbose("Username not have SIP ACCOUNT");
             $MAGNUS->hangup($agi);
             return;
@@ -183,7 +183,6 @@ class CallbackAgi
 
         $agi->evaluate("ANSWER 0");
         $MAGNUS->hangup($agi);
-
     }
 
     public static function chargeFistCall($agi, $MAGNUS, $CalcAgi, $sessiontime = 0)
@@ -253,12 +252,11 @@ class CallbackAgi
                             WHERE id = $MAGNUS->modelUser->id LIMIT 1";
                 $agi->verbose($sql, 25);
                 $agi->exec($sql);
-
             }
         }
     }
 
-    public function advanced0800CallBack($agi, $MAGNUS, $DidAgi, $CalcAgi)
+    public static function advanced0800CallBack($agi, $MAGNUS, $DidAgi, $CalcAgi)
     {
         $MAGNUS->prefix_local = $MAGNUS->modelUser->prefix_local;
         $MAGNUS->CallerID     = preg_replace("/\+/", '', $MAGNUS->CallerID);
@@ -267,7 +265,8 @@ class CallbackAgi
 
         //adiciona o 55 se o callerid tiver somente com DDD numero
         if ((strtoupper($MAGNUS->config['global']['base_country']) == 'BRL' || strtoupper($MAGNUS->config['global']['base_country']) == 'ARG')
-            && (strlen($callerID) == 10 || strlen($callerID) == 11)) {
+            && (strlen($callerID) == 10 || strlen($callerID) == 11)
+        ) {
             $callerID = "55" . $callerID;
         }
         $work   = $MAGNUS->checkIVRSchedule($DidAgi->modelDid->TimeOfDay_monFri, $DidAgi->modelDid->TimeOfDay_sat, $DidAgi->modelDid->TimeOfDay_sun);

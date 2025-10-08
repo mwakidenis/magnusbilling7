@@ -44,7 +44,7 @@ startup_services()
 {
     # Startup Services
     if [ ${DIST} = "DEBIAN" ]; then
-        systemctl restart mysql
+        systemctl restart mariadb
         systemctl restart apache2
         systemctl restart asterisk   
     fi
@@ -72,16 +72,18 @@ echo "$password" > /root/passwordMysql.log
 
 apt-get update --allow-releaseinfo-change
 apt-get install -y locales
-echo "LANG=en_US.utf-8" >> /etc/locale.gen
-echo "LC_ALL=en_US.utf-8" >> /etc/locale.gen
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
-locale-gen en_US.UTF-8
-source /etc/environment
+sed -i 's/^# *en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen || echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+locale-gen
+echo 'LANG=en_US.UTF-8' > /etc/default/locale
+echo 'LC_ALL=en_US.UTF-8' >> /etc/default/locale
+update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 apt-get -o Acquire::Check-Valid-Until=false update 
 apt-get install -y apache2
-apt-get install -y autoconf automake devscripts gawk ntpdate ntp g++ git-core curl sudo xmlstarlet libjansson-dev git  odbcinst1debian2 libodbc1 odbcinst unixodbc unixodbc-dev 
-apt-get install -y php-fpm php  php-dev php-common php-cli php-gd php-pear php-cli php-sqlite3 php-curl php-mbstring unzip libapache2-mod-php uuid-dev libxml2 libxml2-dev openssl libcurl4-openssl-dev gettext gcc g++ libncurses5-dev sqlite3 libsqlite3-dev subversion mpg123
+apt-get install -y autoconf automake devscripts gawk ntpsec g++ git-core curl sudo xmlstarlet libjansson-dev git  odbcinst1debian2 libodbc1 odbcinst unixodbc unixodbc-dev 
+apt-get install -y php-fpm php  php-dev php-common php-cli php-gd php-pear php-cli php-sqlite3 php-curl php-mbstring unzip libapache2-mod-php uuid-dev libxml2 libxml2-dev openssl libcurl4-openssl-dev gettext gcc g++ sqlite3 libsqlite3-dev subversion mpg123
+apt-get install -y libncurses5-dev 
+apt-get install -y libncurses-dev
 apt-get install -y mariadb-server php-mysql
 apt-get install -y unzip git libcurl4-openssl-dev htop sngrep firewalld fail2ban cron
 apt-get install -y rsyslog
@@ -193,22 +195,22 @@ sed -i 's/User ${APACHE_RUN_USER}/User asterisk/' ${HTTP_CONFIG}
 sed -i 's/Group ${APACHE_RUN_GROUP}/Group asterisk/' ${HTTP_CONFIG}
 sed -i "s/memory_limit = 16M/memory_limit = 512M /" ${PHP_INI}
 sed -i "s/memory_limit = 128M/memory_limit = 512M /" ${PHP_INI}
+sed -i 's/^;*\s*phar.readonly\s*=.*/phar.readonly = On/' ${PHP_INI}
+sed -i 's/^;*\s*phar.require_hash\s*=.*/phar.require_hash = On/' ${PHP_INI}
+
 mkdir -p /var/www/html
 sed -i 's/<Directory \/var\/www\/>/<Directory \/var\/www\/html\/>/' "${HTTP_CONFIG}"
 
-
+systemctl enable apache2 
+systemctl enable --now ntpsec
 echo
 echo "----------- Create mysql password: Your mysql root password is $password ----------"
 echo
-mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+
+
 systemctl start mariadb
-systemctl enable apache2 
-systemctl enable mariadb
-chkconfig ntp on
-
-
-mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${password}';"
-
+sudo systemctl enable --now mariadb
+sudo mariadb -e "ALTER USER 'root'@'localhost' IDENTIFIED VIA mysql_native_password USING PASSWORD('${password}');FLUSH PRIVILEGES;"
 
 echo "
 [server]
@@ -449,11 +451,10 @@ echo "----------- Installing the new Database ----------"
 echo
 sleep 2
 
-mysql -uroot -p${password} -e "create database mbilling;"
+mysql -uroot -p${password} -e "CREATE DATABASE IF NOT EXISTS mbilling;"
 mysql -uroot -p${password} -e "CREATE USER 'mbillingUser'@'localhost' IDENTIFIED BY '${MBillingMysqlPass}';"
 mysql -uroot -p${password} -e "GRANT ALL PRIVILEGES ON \`mbilling\` . * TO 'mbillingUser'@'localhost' WITH GRANT OPTION;FLUSH PRIVILEGES;"    
 mysql -uroot -p${password} -e "GRANT FILE ON * . * TO  'mbillingUser'@'localhost' WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0;"
-mysql -uroot -p${password} -e "update mysql.user set plugin='' where User='root';"
 mysql mbilling -u root -p${password}  < /var/www/html/mbilling/script/database.sql
 rm -rf /var/www/html/mbilling/script
 
@@ -626,7 +627,12 @@ echo
 echo "Installing Fail2ban & Iptables"
 echo
 
-ssh_port=$(grep -E '^[[:space:]]*Port[[:space:]]+' /etc/ssh/sshd_config | awk '{print $2}')
+ssh_port=$(
+    awk '
+        /^[[:space:]]*Port[[:space:]]+[0-9]+/ && $1 !~ /^#/ { port=$2 } 
+        END { print port ? port : "22" }
+    ' /etc/ssh/sshd_config
+)
 
 apt install -y firewalld
 

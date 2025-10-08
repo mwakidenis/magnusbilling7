@@ -159,16 +159,6 @@ class UserController extends Controller
             }
         }
 
-        $methodModel = Methodpay::Model()->findAll(
-            "payment_method=:field1 AND active=:field12",
-            [
-                "field1"  => 'SuperLogica',
-                "field12" => '1',
-            ]
-        );
-
-        $values = $this->superLogica($methodModel, $values);
-
         if (Yii::app()->session['isAgent']) {
             //get the group id_group_agent
             $modelUser          = User::model()->findByPk((int) Yii::app()->session['id_user']);
@@ -198,27 +188,6 @@ class UserController extends Controller
 
             if (Yii::app()->session['isAdmin'] == true && $idUserType == 1) {
                 $values['password'] = sha1($values['password']);
-            }
-
-            if (count($methodModel) > 0 && $idUserType == 3) {
-
-                if (strlen($values['lastname']) < 5) {
-                    $error = Yii::t('zii', 'Last name');
-                } else if (strlen($values['firstname']) < 5) {
-                    $error = Yii::t('zii', 'First name');
-                } else if (strlen($values['doc']) < 11) {
-                    $error = Yii::t('zii', 'DOC');
-                } else if (! preg_match('/^[^0-9][a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[@][a-zA-Z0-9_]+([.][a-zA-Z0-9_]+)*[.][a-zA-Z]{2,4}$/', $values['email'])) {
-                    $error = Yii::t('zii', 'Email');
-                }
-                if (isset($error)) {
-                    echo json_encode([
-                        'success' => false,
-                        'rows'    => [],
-                        'errors'  => Yii::t('zii', $error) . ' ' . Yii::t('zii', 'Is required'),
-                    ]);
-                    exit();
-                }
             }
 
             if (Yii::app()->session['user_type'] == 2) {
@@ -436,30 +405,6 @@ class UserController extends Controller
         }
     }
 
-    public function superLogica($methodModel, $values)
-    {
-        if ($this->isNewRecord) {
-            if (isset($methodModel[0]->SLAppToken)) {
-                $response = SLUserSave::saveUserSLCurl(
-                    $this,
-                    $methodModel[0]->SLAppToken,
-                    $methodModel[0]->SLAccessToken
-                );
-                $values['id_sacado_sac'] = $response[0]->data->id_sacado_sac;
-            }
-        } else {
-            if (isset($methodModel[0]->SLAppToken)) {
-                $response = SLUserSave::saveUserSLCurl(
-                    $this,
-                    $methodModel[0]->SLAppToken,
-                    $methodModel[0]->SLAccessToken,
-                    false
-                );
-            }
-        }
-
-        return $values;
-    }
 
     public function actionCredit()
     {

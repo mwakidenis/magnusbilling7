@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -132,7 +133,7 @@ class QueueAgi
         if ($siptransfer['data'] != 'yes' && $type == 'queue') {
 
             $CalcAgi->real_sessiontime = intval($CalcAgi->sessiontime);
-            if ( ! is_null($DidAgi)) {
+            if (! is_null($DidAgi)) {
                 $DidAgi->billDidCall($agi, $MAGNUS, $CalcAgi->sessiontime, $CalcAgi);
             }
 
@@ -164,17 +165,15 @@ class QueueAgi
                 $agi->verbose($sql, 25);
                 $agi->exec($sql);
             }
-
         }
         if ($type == 'queue') {
             exit;
         } else {
             return;
         }
-
     }
 
-    public function recIvrQueue($agi, $MAGNUS, $CalcAgi)
+    public static function recIvrQueue($agi, $MAGNUS, $CalcAgi)
     {
 
         $agi->verbose('recIvrQueue');
@@ -218,7 +217,7 @@ class QueueAgi
         exit;
     }
 
-    public function pauseQueue($agi, $MAGNUS)
+    public static function pauseQueue($agi, $MAGNUS)
     {
 
         $sql = "SELECT * FROM pkg_queue_member WHERE interface = 'SIP/" . $MAGNUS->sip_account . "'";
@@ -235,7 +234,6 @@ class QueueAgi
                     $agi->verbose($sql);
                     $asmanager->command($command);
                     $agi->stream_file('agent-loginok', '#');
-
                 } else {
                     $sql     = "UPDATE pkg_queue_member SET paused = 1  WHERE interface = 'SIP/" . $MAGNUS->sip_account . "'";
                     $command = 'queue pause member ' . $queue->interface . ' queue ' . $queue->queue_name;

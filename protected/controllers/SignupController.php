@@ -145,8 +145,8 @@ class SignupController extends Controller
 
             $signup->typepaid = 0;
             $signup->language = $this->config['global']['base_language'] == 'pt_BR'
-            ? 'br'
-            : $this->config['global']['base_language'];
+                ? 'br'
+                : $this->config['global']['base_language'];
 
             $signup->attributes   = $_POST['Signup'];
             $signup->company_name = isset($_POST['Signup']['company_name']) ? $_POST['Signup']['company_name'] : '';
@@ -161,8 +161,6 @@ class SignupController extends Controller
             } else {
                 $success = $signup->save();
 
-                //add the new user to SuperLogica
-                $this->createUserinSuperLogica();
                 Yii::log(print_r($signup->getErrors(), true), 'error');
                 if ($success) {
 
@@ -216,7 +214,6 @@ class SignupController extends Controller
                     exit;
                 }
             }
-
         }
         //if exist get id, find agent plans else get admin plans
         if (isset($_GET['id'])) {
@@ -250,21 +247,6 @@ class SignupController extends Controller
         ));
     }
 
-    public function createUserinSuperLogica()
-    {
-        $modelMethodPay = Methodpay::model()->find("payment_method = 'SuperLogica' AND active = 1");
-        if (isset($modelMethodPay->id)) {
-
-            $response = SLUserSave::saveUserSLCurl($this, $modelMethodPay->SLAppToken
-                , $modelMethodPay->SLAccessToken, false);
-
-            if (isset($response[0]->data->id_sacado_sac)) {
-                $this->id_sacado_sac = $response[0]->data->id_sacado_sac;
-            }
-
-        }
-        return;
-    }
 
     public function actionGetPlans()
     {

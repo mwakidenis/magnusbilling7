@@ -21,7 +21,7 @@ Locale.load({
     'ALERT: Do you really want cancel this service to this user?': '',
     'ALERT: This action was to return the balance, referring to the days not used. Do you confirm?': '',
     'ALOC': '',
-    'ALOC all calls': '',
+    'ALOC all calls': 'ACD',
     'AMD': '',
     'API': '',
     'ASR': '',

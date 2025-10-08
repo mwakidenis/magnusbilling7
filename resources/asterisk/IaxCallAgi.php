@@ -1,11 +1,12 @@
 <?php
+
 /**
  *
  */
 class IaxCallAgi
 {
 
-    public function processCall(&$MAGNUS, &$agi, &$CalcAgi, $modeIax)
+    public static function processCall(&$MAGNUS, &$agi, &$CalcAgi, $modeIax)
     {
         $agi->verbose('IaxCallAgi ');
         if (($MAGNUS->agiconfig['use_dnid'] == 1) && (strlen($MAGNUS->dnid) > 2)) {
@@ -62,7 +63,5 @@ class IaxCallAgi
         $CalcAgi->saveCDR($agi, $MAGNUS);
 
         $MAGNUS->hangup($agi);
-
     }
-
 }

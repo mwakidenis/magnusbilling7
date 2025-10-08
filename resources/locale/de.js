@@ -21,7 +21,7 @@ Locale.load({
     'ALERT: Do you really want cancel this service to this user?': 'Alarm: Möchten Sie diesen Service wirklich für diesen Benutzer stornieren?',
     'ALERT: This action was to return the balance, referring to the days not used. Do you confirm?': 'Alarm: Diese Option wird Gutschrift für ungenutzte Tage zurückgeben. Bestätigen Sie das?',
     'ALOC': 'ALOC',
-    'ALOC all calls': 'ALOC alle Anrufe',
+    'ALOC all calls': 'ACD',
     'AMD': 'AMD',
     'API': 'API',
     'ASR': 'ASR',

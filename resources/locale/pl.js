@@ -21,7 +21,7 @@ Locale.load({
     'ALERT: Do you really want cancel this service to this user?': 'UWAGA: Czy na pewno chcesz anulować tę usługę dla tego użytkownika?',
     'ALERT: This action was to return the balance, referring to the days not used. Do you confirm?': 'UWAGA: Ta akcja ma na celu zwrócenie salda za niewykorzystane dni. Czy potwierdzasz?',
     'ALOC': 'ALOC',
-    'ALOC all calls': 'ALOC wszystkie rozmowy',
+    'ALOC all calls': 'ACD',
     'AMD': 'AMD',
     'API': 'API',
     'ASR': 'ASR',
