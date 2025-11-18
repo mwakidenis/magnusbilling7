@@ -199,7 +199,7 @@ class CallController extends Controller
 
                 header("Cache-Control: public");
                 header("Content-Description: File Transfer");
-                header("Content-Disposition: attachment; filename=" . $uniqueid);
+                header("Content-Disposition: attachment; filename=" . $uniqueid . '.gsm');
                 header("Content-Type: audio/x-gsm");
                 header("Content-Transfer-Encoding: binary");
                 readfile('/var/www/html/mbilling/tmp/' . $uniqueid . '.gsm');

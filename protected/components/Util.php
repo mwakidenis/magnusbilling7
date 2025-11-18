@@ -308,14 +308,14 @@ class Util
     {
         // Extension -> MIME map (only safe/common formats)
         $mimeMap = [
-            'jpg'  => ['image/jpeg', 'image/pjpeg','image/webp'],
+            'jpg'  => ['image/jpeg', 'image/pjpeg', 'image/webp'],
             'jpeg' => ['image/jpeg', 'image/pjpeg'],
             'png'  => ['image/png'],
             'gif'  => ['image/gif'],
             'txt'  => ['text/plain'],
             'csv'  => ['text/csv', 'application/vnd.ms-excel', 'text/plain'],
             'wav'  => ['audio/wav', 'audio/x-wav', 'audio/wave'],
-            'gsm'  => ['audio/x-gsm'],
+            'gsm'  => ['audio/x-gsm', 'application/octet-stream'],
         ];
 
         // Get extension from original filename
@@ -324,17 +324,17 @@ class Util
         // Block dangerous extensions explicitly
         $dangerous = ['php', 'phtml', 'phar', 'php5', 'php7', 'php8', 'cgi', 'pl', 'exe', 'sh', 'bash'];
         if (in_array($ext, $dangerous, true)) {
-            self::jsonError();
+            self::jsonError('ext is dangerous ' . $dangerous);
         }
 
         // Check if extension is in the allowed list
         if (!in_array($ext, $allowed, true)) {
-            self::jsonError();
+            self::jsonError('ext not allowd ' . $dangerous);
         }
 
         // Check if we have a MIME map for this extension
         if (!isset($mimeMap[$ext])) {
-            self::jsonError();
+            self::jsonError('invalid MIME ' . $mimeMap[$ext]);
         }
 
         // Detect real MIME type
@@ -342,27 +342,27 @@ class Util
         $mime  = $finfo->file($tmpPath) ?: '';
 
         // Block empty or generic MIME
-        if ($mime === '' || $mime === 'application/octet-stream') {
-            self::jsonError();
+        if ($mime === '' || ($mime === 'application/octet-stream' && $ext != 'gsm')) {
+            self::jsonError('Block empty or generic MIME ' . $mime);
         }
 
         // Check if real MIME matches the allowed ones for this extension
         if (!in_array($mime, $mimeMap[$ext], true)) {
-            self::jsonError('MIME NOT matches the allowed ones for this extension '.$mime);
+            self::jsonError('MIME NOT matches the allowed ones for this extension ' . $mime . ' ' . print_r($mimeMap[$ext], true));
         }
 
         // Extra check for images
         if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'], true)) {
             $img = @getimagesize($tmpPath);
             if ($img === false) {
-                self::jsonError('ext is not image '.$ext);
+                self::jsonError('ext is not image ' . $ext);
             }
         }
 
         return $ext;
     }
 
-    private static function jsonError($msg='File error')
+    private static function jsonError($msg = 'File error')
     {
         echo json_encode([
             'success' => false,

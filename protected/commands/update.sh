@@ -103,10 +103,6 @@ chown -R mysql:mysql /var/lib/mysql
 chmod -R 755 /usr/local/src/magnus
 
 
-rm -rf /var/www/html/mbilling/tmp
-mkdir -p /var/www/html/mbilling/tmp
-chown -R asterisk:asterisk /var/www/html/mbilling/tmp
-
 echo 'Options -Indexes
 Order Deny,Allow
 Deny from all

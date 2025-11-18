@@ -584,7 +584,20 @@ class CalcAgi
         }
 
 
-        if (isset($modelTrunksDID[0]->id)) {
+        //check if the callerid used is a callerid and the callerid have a specific trunk on description
+        $sql = "SELECT * FROM pkg_callerid WHERE cid = '" . $MAGNUS->CallerID . "' AND description != ''";
+        $agi->verbose($sql, 25);
+        $modelCALLERID = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
+        if (isset($modelCALLERID->id)) {
+            $sql = "SELECT id, id AS id_trunk FROM pkg_trunk WHERE trunkcode = '" . $modelCALLERID->description . "'";
+            $agi->verbose($sql, 25);
+            $modelTrunksmodelCALLERID = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
+        }
+
+        if (isset($modelTrunksmodelCALLERID[0]->id)) {
+            $modelTrunks = $modelTrunksmodelCALLERID;
+            $agi->verbose(print_r($modelTrunks, true), 25);
+        } else if (isset($modelTrunksDID[0]->id)) {
             $modelTrunks = $modelTrunksDID;
             $agi->verbose(print_r($modelTrunks, true), 25);
         } else {

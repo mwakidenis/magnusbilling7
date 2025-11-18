@@ -1477,7 +1477,7 @@ class BaseController extends CController
                     Yii::log(print_r($_REQUEST, true), 'error');
                     Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
 
-                    $info    = 'Trying SQL inject, code: Field - ' . $field . ' . Controller => ' . Yii::app()->controller->id;
+                    $info    = '1Trying SQL inject, code: Field - ' . $field . ' . Controller => ' . Yii::app()->controller->id;
                     $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
                     MagnusLog::insertLOG(2, $info);
                     echo json_encode([
@@ -1489,21 +1489,33 @@ class BaseController extends CController
                     exit;
                 }
             } else if (!in_array($field, $allowedCols, true)) {
-                Yii::log($this->controllerName, 'error');
-                Yii::log(print_r($_SERVER, true), 'error');
-                Yii::log(print_r($_REQUEST, true), 'error');
-                Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
 
-                $info    = 'Trying SQL inject, code: Field - ' . $field . ' . Controller => ' . Yii::app()->controller->id;
-                $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
-                MagnusLog::insertLOG(2, $info);
-                echo json_encode([
-                    'rows'  => [],
-                    'count' => 0,
-                    'sum'   => [],
-                    'errors'   =>  ''
-                ]);
-                exit;
+                if (Yii::app()->controller->id == 'diddestination' && $this->actionName == 'bulkdestinatintion') {
+                    //ok
+                } else {
+
+
+                    Yii::log($this->controllerName, 'error');
+                    Yii::log(print_r($_SERVER, true), 'error');
+                    Yii::log(print_r($_REQUEST, true), 'error');
+                    Yii::log(Yii::app()->session['id_user'] . ' ' . Yii::app()->session['username'], 'error');
+
+                    Yii::log(print_r($allowedCols, true), 'error');
+                    Yii::log($field, 'error');
+
+
+
+                    $info    = '2Trying SQL inject, code: Field - ' . $field . ' . Controller => ' . Yii::app()->controller->id . ' ' . $this->actionName;
+                    $id_user = isset(Yii::app()->session['id_user']) ? Yii::app()->session['id_user'] : 'NULL';
+                    MagnusLog::insertLOG(2, $info);
+                    echo json_encode([
+                        'rows'  => [],
+                        'count' => 0,
+                        'sum'   => [],
+                        'errors'   =>  ''
+                    ]);
+                    exit;
+                }
             }
 
 

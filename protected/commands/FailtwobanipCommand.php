@@ -201,11 +201,11 @@ ignoreregex =
     public function getLinesCommand($command, $action = 0, $server)
     {
 
-        echo "sed -i 's/^ignoreip = .*/" . $this->ignogeips . "/' /etc/fail2ban/jail.local\n";
-
 
         //if is master server
         if ($server['type'] == 'mbilling') {
+
+            echo   "master\n\n\n";
 
             //add the ignore ips to jail.local and reload fail2ban
             shell_exec("sed -i 's/^ignoreip = .*/" . $this->ignogeips . "/' /etc/fail2ban/jail.local");
@@ -260,9 +260,13 @@ ignoreregex =
 
 
             $host = trim($server['host']);
+
+
+            echo $host . "\n\n\n";
+            $this->ssh_port = strlen($server['description']) ? intval($server['description']) : $this->ssh_port;
             if (filter_var($host, FILTER_VALIDATE_IP)) {
 
-                return;
+
 
 
                 //if is a Slave or proxy execute the commands via SSH

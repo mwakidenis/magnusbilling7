@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -22,8 +23,8 @@ class CallArchiveCommand extends ConsoleCommand
     public function run($args)
     {
         $prior_x_month = $this->config['global']['archive_call_prior_x_month'];
+        $prior_x_month_failed = $this->config['global']['archive_call_failed_prior_x_month'];
 
-        $condition = 'starttime < "' . date("Y-m-d", strtotime(date("Y-m-d") . "-$prior_x_month month")) . ' 00:00:00"';
 
         CallFailed::model()->createDataBaseIfNotExist();
 
@@ -31,16 +32,21 @@ class CallArchiveCommand extends ConsoleCommand
         $tables = ['pkg_cdr', 'pkg_cdr_failed'];
         foreach ($tables as $key => $table) {
 
+
+            if ($table == 'pkg_cdr') {
+                $func_fields = "id_user, id_plan, id_prefix, id_trunk, uniqueid, starttime, sessiontime, calledstation, sessionbill, sipiax, src, buycost, real_sessiontime, terminatecauseid, agent_bill";
+                $condition = 'starttime < "' . date("Y-m-d", strtotime(date("Y-m-d") . "-$prior_x_month month")) . ' 00:00:00"';
+            } else {
+                $func_fields = "id_user, id_plan, id_prefix, id_trunk, uniqueid, starttime, calledstation, sipiax, src, terminatecauseid";
+                $condition = 'starttime < "' . date("Y-m-d", strtotime(date("Y-m-d") . "-$prior_x_month_failed month")) . ' 00:00:00"';
+            }
+
+
             $sql    = "SELECT count(*) AS count FROM $table WHERE $condition ";
             $result = Yii::app()->db->createCommand($sql)->queryAll();
 
             $loop = intval($result[0]['count'] / 10000);
 
-            if ($table == 'pkg_cdr') {
-                $func_fields = "id_user, id_plan, id_prefix, id_trunk, uniqueid, starttime, sessiontime, calledstation, sessionbill, sipiax, src, buycost, real_sessiontime, terminatecauseid, agent_bill";
-            } else {
-                $func_fields = "id_user, id_plan, id_prefix, id_trunk, uniqueid, starttime, calledstation, sipiax, src, terminatecauseid";
-            }
 
             if ($c == 0) {
                 $condition = $condition . " ORDER BY id LIMIT 10000";
@@ -53,7 +59,6 @@ class CallArchiveCommand extends ConsoleCommand
                 try {
                     Yii::app()->db->createCommand($sql)->execute();
                 } catch (Exception $e) {
-
                 }
                 $sql = "DELETE FROM $table WHERE $condition";
                 Yii::app()->db->createCommand($sql)->execute();
@@ -62,7 +67,6 @@ class CallArchiveCommand extends ConsoleCommand
         }
 
         $this->deleteCalls();
-
     }
     public function deleteCalls()
     {

@@ -2111,7 +2111,7 @@ exten => s,1,Set(MASTER_CHANNEL(TRUNKANSWERTIME)=\${EPOCH})
             $version = '7.8.5.3';
             $this->update($version);
         }
-        //2025-10-25
+        //2025-09-25
         if ($version == '7.8.5.3') {
             $sql = "INSERT INTO pkg_module VALUES
                 (13, 't(''Voice Broadcasting'')', NULL, 'x-fa fa-arrow-right', NULL,8),
@@ -2141,6 +2141,33 @@ exten => s,1,Set(MASTER_CHANNEL(TRUNKANSWERTIME)=\${EPOCH})
             $this->executeDB($sql);
 
             $version = '7.8.5.4';
+            $this->update($version);
+        }
+
+        //2025-10-21
+        if ($version == '7.8.5.4') {
+            $sql = "";
+            $sql = "INSERT INTO pkg_configuration
+                VALUES (
+                    NULL,
+                    'Archive cdr failed',
+                    'archive_call_failed_prior_x_month',
+                    ( SELECT config_value FROM (SELECT config_value FROM pkg_configuration WHERE config_key = 'archive_call_prior_x_month' LIMIT 1) AS tmp),
+                    'Archive call to other table before X months.',
+                    'global',
+                    '1'
+                );";
+            $this->executeDB($sql);
+
+            $version = '7.8.5.5';
+            $this->update($version);
+        }
+
+
+        //2025-10-21
+        if ($version == '7.8.5.5') {
+            exec("echo 'noload => codec_silk.so' >> /etc/asterisk/modules.conf");
+            $version = '7.8.5.6';
             $this->update($version);
         }
     }

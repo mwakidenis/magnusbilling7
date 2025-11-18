@@ -94,7 +94,12 @@ class sqlInject
                             if (is_array($valuearray)) {
                                 foreach ($valuearray as $key => $value) {
 
-                                    $value = @strtolower($value);
+                                    if (is_object($value)) {
+                                        $value = (array) $value;
+                                    }
+
+                                    $value = is_string($value) ?  @strtolower($value) : NULL;
+
                                     if (strlen($value) > 250) {
                                         $info    = 'Variable to long: ' . $value . '. Controller => ' . Yii::app()->controller->id;
                                         MagnusLog::insertLOG(2, $info);
@@ -215,11 +220,6 @@ class sqlInject
                         'sum'   => [],
                         'msg'   => CHtml::encode($info)
                     ]);
-
-
-
-
-
                     exit;
                 }
             }
