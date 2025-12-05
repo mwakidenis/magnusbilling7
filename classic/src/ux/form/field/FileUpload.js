@@ -46,7 +46,7 @@ Ext.define('Ext.ux.form.field.FileUpload', {
             type: 'component'
         }
     },
-    applyTriggers: function(triggers) {
+    applyTriggers: function (triggers) {
         var me = this,
             triggerCfg = (triggers || {}).playbutton;
         if (triggerCfg) {
@@ -66,7 +66,7 @@ Ext.define('Ext.ux.form.field.FileUpload', {
             return me.callParent([triggers]);
         }
     },
-    onRender: function() {
+    onRender: function () {
         var me = this,
             button;
         me.isAudio = me.extAllowed.indexOf('wav') !== -1;
@@ -82,7 +82,7 @@ Ext.define('Ext.ux.form.field.FileUpload', {
         }
         me.initTipInfo();
     },
-    reset: function() {
+    reset: function () {
         var me = this;
         if (!me.isAudio) {
             return;
@@ -98,7 +98,7 @@ Ext.define('Ext.ux.form.field.FileUpload', {
         }
         me.callParent(arguments);
     },
-    onEditForm: function() {
+    onEditForm: function () {
         var me = this,
             record = me.formPanel.getForm().getRecord(),
             audio = record && record.get(me.name),
@@ -127,16 +127,16 @@ Ext.define('Ext.ux.form.field.FileUpload', {
         me.buttonPlay.setVisible(hasAudio);
         me.triggerPlay.setVisible(hasAudio);
     },
-    onEndAudio: function() {
+    onEndAudio: function () {
         this.buttonPlay.setIconCls('icon-play');
     },
-    getTriggerMarkup: function() {
+    getTriggerMarkup: function () {
         var me = this,
             btn = me.callParent(arguments),
             play = '<td id="' + me.id + '-playButtonWrap" data-ref="playButtonWrap" role="presentation"></td>';
         return btn + play;
     },
-    playStop: function(btn) {
+    playStop: function (btn) {
         var me = this,
             isPlay = btn.iconCls === 'icon-play';
         if (isPlay) {
@@ -144,7 +144,7 @@ Ext.define('Ext.ux.form.field.FileUpload', {
             window.open(url, "_blank");
         }
     },
-    initTipInfo: function() {
+    initTipInfo: function () {
         var me = this;
         if (!me.htmlTipInfo) {
             return;
@@ -156,12 +156,12 @@ Ext.define('Ext.ux.form.field.FileUpload', {
             target: me.button.el
         });
     },
-    onFileChange: function(btn, evt, value) {
+    onFileChange: function (btn, evt, value) {
         var me = this;
         me.getInfoFile(evt);
         me.callParent(arguments);
     },
-    getInfoFile: function(evt) {
+    getInfoFile: function (evt) {
         var me = this,
             file = evt.target.files[0],
             arrayNameFile = file.name.split('.'),

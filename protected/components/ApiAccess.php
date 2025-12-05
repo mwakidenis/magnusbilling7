@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -28,7 +29,7 @@ class ApiAccess
             ':key' => $_SERVER['HTTP_KEY'],
         ]);
 
-        if ( ! isset($modelApi->id)) {
+        if (! isset($modelApi->id)) {
             exit('invalid API access');
         }
         $api_key         = $modelApi->api_key;
@@ -59,7 +60,6 @@ class ApiAccess
                 if ($allowed === false) {
                     exit('invalid IP');
                 }
-
             }
 
             if (isset($_POST['getFields']) || isset($_POST['getModules']) || isset($_POST['getMenu'])) {
@@ -128,7 +128,7 @@ class ApiAccess
                 }
 
                 if (isset($_POST['getFields'])) {
-                    if ( ! AccessManager::getInstance($_POST['module'])->canRead()) {
+                    if (! AccessManager::getInstance($_POST['module'])->canRead()) {
                         header('HTTP/1.0 401 Unauthorized');
                         die("Access denied in module:" . $_POST['module']);
                     }
@@ -137,7 +137,6 @@ class ApiAccess
 
                     echo json_encode($rules);
                     exit;
-
                 } else if (isset($_POST['getModules'])) {
 
                     $dir         = '/var/www/html/mbilling/protected/controllers/';
@@ -154,7 +153,6 @@ class ApiAccess
                             if (isset($controllers[$values->idModule->module])) {
                                 $modules[] = ['Menu name' => substr($values->idModule->text, 3, -2), 'Module name' => $controllers[$values->idModule->module]];
                             }
-
                         }
                     }
                     exit(json_encode($modules));
@@ -167,7 +165,6 @@ class ApiAccess
         } else {
             exit('invalid API access');
         }
-
     }
 
     private function checkPermissions($modelApi)
@@ -197,10 +194,9 @@ class ApiAccess
             $action = 'r';
         }
 
-        if ( ! preg_match('/' . $action . '/', $modelApi->action)) {
+        if (! preg_match('/' . $action . '/', $modelApi->action)) {
             exit('invalid API action');
         }
-
     }
 
     private function createUser($baseController)
@@ -219,7 +215,6 @@ class ApiAccess
                 ]);
 
                 exit;
-
             }
         }
 
@@ -257,7 +252,7 @@ class ApiAccess
             }
         }
 
-        if ( ! isset($values['credit'])) {
+        if (! isset($values['credit'])) {
             $values['credit'] = isset($modelPlan->ini_credit) ? $modelPlan->ini_credit : 0;
         }
 
@@ -301,7 +296,7 @@ class ApiAccess
             $attributes = false;
             foreach ($modelUser as $key => $item) {
 
-                if ( ! strlen($item)) {
+                if (! strlen($item)) {
                     continue;
                 }
                 $attributes[$key] = $item;
@@ -323,13 +318,11 @@ class ApiAccess
                 'success' => true,
                 'data'    => $attributes,
             ]);
-
         } else {
             echo json_encode([
                 'success' => false,
                 'errors'  => $modelUser->getErrors(),
             ]);
         }
-
     }
 }

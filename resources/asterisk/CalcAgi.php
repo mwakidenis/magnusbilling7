@@ -911,6 +911,9 @@ class CalcAgi
                 $fields .= ', agent_bill';
                 $values .= ", $this->agent_bill";
             }
+            if (!is_numeric($this->id_prefix)) {
+                $this->id_prefix = 'NULL';
+            }
             $sql = "INSERT INTO pkg_cdr ($fields) VALUES ($values) ";
             $agi->verbose($sql, 25);
             $agi->exec($sql);
@@ -941,7 +944,7 @@ class CalcAgi
 
                 $values = "'$MAGNUS->uniqueid', '$MAGNUS->id_user','$MAGNUS->destination','$MAGNUS->id_plan',
                         '$MAGNUS->id_trunk','$MAGNUS->CallerID', '$MAGNUS->sip_account',
-                        '$this->starttime', '$this->terminatecauseid','$this->sipiax','$this->id_prefix','$code'";
+                        '$this->starttime', '$this->terminatecauseid','$this->sipiax',$this->id_prefix,'$code'";
 
                 if (isset($modelServers->id)) {
                     $fields .= ', id_server';

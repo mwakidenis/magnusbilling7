@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -93,7 +94,7 @@ class DidAgi
                                     ORDER BY LENGTH(prefix) DESC";
                     $agi->verbose($sql, 25);
                     $modelPrefix = $agi->query($sql)->fetch(PDO::FETCH_OBJ);
-                    if ( ! isset($modelPrefix->id)) {
+                    if (! isset($modelPrefix->id)) {
                         $agi->verbose('Not found prefix to DID ' . $this->did);
                     }
                     $CalcAgi->id_prefix = $modelPrefix->id;
@@ -160,7 +161,6 @@ class DidAgi
                         $MAGNUS->hangup($agi);
                         exit;
                     }
-
                 }
                 $this->checkDidDestinationType($agi, $MAGNUS, $CalcAgi);
             } else {
@@ -171,7 +171,6 @@ class DidAgi
                 exit;
             }
         }
-
     }
 
     public function getCallsPerDid($did, $agi = null, $channelsData)
@@ -211,7 +210,6 @@ class DidAgi
                 $CalcAgi->didAgi                    = $this->modelDid;
                 $this->modelDid->selling_rate_1     = $this->sell_price;
                 $this->modelDid->buy_rate_1         = $this->buy_price;
-
             } else {
                 $agi->verbose('NOT found callerid, = ' . $MAGNUS->CallerID . ' to did ' . $this->did . ' and was selected charge_of to callerID');
                 $MAGNUS->hangup($agi);
@@ -230,7 +228,7 @@ class DidAgi
         $agi->verbose('voip_call ' . $this->voip_call, 5);
 
         if ($this->modelDid->cbr == 1 && ! $agi->get_variable("ISFROMCALLBACKPRO", true)) {
-            if ( ! $agi->get_variable("SECCALL", true)) {
+            if (! $agi->get_variable("SECCALL", true)) {
                 $agi->verbose('RECEIVED 0800 CALLBACPRO', 5);
                 CallbackAgi::advanced0800CallBack($agi, $MAGNUS, $this, $CalcAgi);
                 return;
@@ -275,7 +273,7 @@ class DidAgi
                 CallbackAgi::callbackCID($agi, $MAGNUS, $CalcAgi, $this);
                 break;
             case 6:
-                if ( ! $agi->get_variable("SECCALL", true)) {
+                if (! $agi->get_variable("SECCALL", true)) {
                     $agi->verbose('RECEIVED 0800 CALLBACK', 5);
                     CallbackAgi::callback0800($agi, $MAGNUS, $CalcAgi, $this);
                 }
@@ -304,7 +302,7 @@ class DidAgi
             $prefixclause = substr($prefixclause, 0, -3) . ")";
 
             $sql = "SELECT * FROM pkg_rate_provider t  JOIN pkg_prefix p ON t.id_prefix = p.id WHERE " .
-            "id_provider = ( SELECT id_provider FROM pkg_trunk WHERE id = " . $MAGNUS->id_trunk . ") AND " . $prefixclause .
+                "id_provider = ( SELECT id_provider FROM pkg_trunk WHERE id = " . $MAGNUS->id_trunk . ") AND " . $prefixclause .
                 "ORDER BY LENGTH( prefix ) DESC LIMIT 1";
             $agi->verbose($sql, 25);
             $modelRateProvider = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
@@ -420,14 +418,13 @@ class DidAgi
                         continue;
                     }
                 }
-                /* Call to group*/
-                else if ($inst_listdestination['voip_call'] == 8) {
+                /* Call to group*/ else if ($inst_listdestination['voip_call'] == 8) {
                     $agi->verbose("DID destination type SIP group ", 6);
                     $sql = "SELECT * FROM pkg_sip WHERE sip_group = '" . $inst_listdestination['destination'] . "'";
                     $agi->verbose($sql, 25);
                     $modelSip = $agi->query($sql)->fetchAll(PDO::FETCH_OBJ);
                     $agi->verbose("Call group $group ", 6);
-                    if ( ! isset($modelSip[0]->id)) {
+                    if (! isset($modelSip[0]->id)) {
                         $answeredtime = 0;
                         continue;
                     }
@@ -459,10 +456,8 @@ class DidAgi
                         $answeredtime = 0;
                         continue;
                     }
-
                 }
-                /* Call to custom dial*/
-                else if ($inst_listdestination['voip_call'] == 9) {
+                /* Call to custom dial*/ else if ($inst_listdestination['voip_call'] == 9) {
                     $agi->verbose("DID destination type CUSTOM ", 6);
                     //SMS@O numero %callerid% acabou de  ligar.
                     if (strtoupper(substr($inst_listdestination['destination'], 0, 3)) == 'SMS') {
@@ -549,7 +544,6 @@ class DidAgi
                             continue;
                         }
                     }
-
                 } elseif ($inst_listdestination['voip_call'] == 10) {
                     $agi->verbose("DID destination type DIALPLAN ", 6);
                     $MAGNUS->run_dial($agi, "LOCAL/" . $this->did . "@did-" . $this->did);
@@ -597,7 +591,7 @@ class DidAgi
 
                         /* PERFORM THE CALL*/
                         $result_callperf = $CalcAgi->sendCall($agi, $MAGNUS->destination, $MAGNUS);
-                        if ( ! $result_callperf) {
+                        if (! $result_callperf) {
                             $prompt = "prepaid-callfollowme";
                             $agi->verbose($prompt, 10);
                             $agi->stream_file($prompt, '#');
@@ -639,12 +633,16 @@ class DidAgi
             return 1;
         } else {
 
+            if (!is_numeric($CalcAgi->id_prefix)) {
+                $CalcAgi->id_prefix = 'NULL';
+            }
+
             $fields = "uniqueid,id_user,calledstation,id_plan,id_trunk,callerid,src,
                         starttime, terminatecauseid,sipiax,id_prefix,hangupcause";
             $id_trunk = $MAGNUS->id_trunk > 0 ? $MAGNUS->id_trunk : null;
             $values   = "'$MAGNUS->uniqueid', '$MAGNUS->id_user','$this->did','$MAGNUS->id_plan',
                         '$id_trunk','$MAGNUS->CallerID', 'DID Call',
-                        '" . date('Y-m-d H:i:s') . "', '0','3','$CalcAgi->id_prefix','0'";
+                        '" . date('Y-m-d H:i:s') . "', '0','3',$CalcAgi->id_prefix,'0'";
             $sql = "INSERT INTO pkg_cdr_failed ($fields) VALUES ($values) ";
             $agi->verbose($sql, 25);
             $agi->exec($sql);
@@ -702,7 +700,6 @@ class DidAgi
             }
             return;
         }
-
     }
 
     public function parseDialStatus(&$agi, $dialstatus, $answeredtime)
@@ -765,7 +762,6 @@ class DidAgi
             $selling_rate      = 0;
             $buy_rate          = 0;
             $agent_client_rate = 0;
-
         }
 
         if ($this->modelDid->connection_sell == 0 && $selling_rate == 0) {
@@ -779,8 +775,8 @@ class DidAgi
         $this->agent_client_rate = $agent_client_rate;
 
         $credit = $MAGNUS->modelUser->typepaid == 1
-        ? $MAGNUS->modelUser->credit + $MAGNUS->modelUser->creditlimit
-        : $MAGNUS->modelUser->credit;
+            ? $MAGNUS->modelUser->credit + $MAGNUS->modelUser->creditlimit
+            : $MAGNUS->modelUser->credit;
 
         if ($MAGNUS->modelUser->active != 1) {
             $agi->verbose("HANGUP BECAUSE USER IS NOT ACTIVE " . $username, 10);
@@ -841,13 +837,11 @@ class DidAgi
                 }
 
                 $answeredtime = $calculaminutos * $billingblock;
-
             } elseif ($answeredtime < '1') {
                 $sessiontime = 0;
             } else {
                 $answeredtime = $initblock;
             }
-
         }
 
         $this->billDidCall($agi, $MAGNUS, $answeredtime, $CalcAgi);
@@ -882,7 +876,6 @@ class DidAgi
             $CalcAgi->sessionbill = 0;
             $CalcAgi->sipiax      = 3;
             $CalcAgi->saveCDR($agi, $MAGNUS);
-
         }
         return;
     }

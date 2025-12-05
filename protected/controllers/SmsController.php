@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Acoes do modulo "Sms".
  *
@@ -47,9 +48,9 @@ class SmsController extends Controller
     public function actionSend()
     {
         SqlInject::sanitize($_GET);
-        if ( ! isset($_GET['number']) || ! isset($_GET['text']) || ! isset($_GET['username']) || ! isset($_GET['password'])) {
+        if (! isset($_GET['number']) || ! isset($_GET['text']) || ! isset($_GET['username']) || ! isset($_GET['password'])) {
             exit('invalid data');
-        } elseif ( ! is_numeric($_GET['number'])) {
+        } elseif (! is_numeric($_GET['number'])) {
             exit('invalid non-numeric number');
         } else if (strlen($_GET['number']) > 15) {
             exit('invalid number');
@@ -61,14 +62,13 @@ class SmsController extends Controller
 
         $modelSip = AccessManager::checkAccess($_GET['username'], $_GET['password']);
 
-        if ( ! isset($modelSip->id)) {
+        if (! isset($modelSip->id)) {
             exit('invalid user');
         }
 
         $result = SmsSend::send($modelSip->idUser, $_GET['number'], $_GET['text'], 0, '', true);
 
         echo $result['success'] ? 'Sent' : 'Error' . ' ' . $result['errors'];
-
     }
 
     public function actionSendPost()
@@ -94,7 +94,7 @@ class SmsController extends Controller
          */
 
         SqlInject::sanitize($_POST);
-        if ( ! isset($_POST['number']) || ! isset($_POST['text']) || ! isset($_POST['username'])) {
+        if (! isset($_POST['number']) || ! isset($_POST['text']) || ! isset($_POST['username'])) {
             exit('invalid data');
         } else if (strlen($_POST['text']) > 200) {
             exit('invalid number');
@@ -103,7 +103,7 @@ class SmsController extends Controller
         }
 
         $modelUser = User::model()->find('username = :key', [':key' => $_POST['username']]);
-        if ( ! isset($modelUser->id)) {
+        if (! isset($modelUser->id)) {
             exit('invalid data');
         }
         $numbers = explode(',', $_POST['number']);

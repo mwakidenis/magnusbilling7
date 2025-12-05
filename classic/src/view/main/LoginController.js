@@ -7,7 +7,7 @@ Ext.define('MBilling.view.main.LoginController', {
     msgEnteringInSystem: t('Entering in system...'),
     msgWelcome: t('Welcome'),
     titleErrorInAuthentication: t('Authentication error'),
-    onLogin: function(btn) {
+    onLogin: function (btn) {
         var me = this,
             loginWin = me.getView(),
             fieldUser = me.lookupReference('user'),
@@ -25,7 +25,7 @@ Ext.define('MBilling.view.main.LoginController', {
                 password: me.SHA1(fieldPassword.getValue()),
                 key: window.captcha
             },
-            success: function(response) {
+            success: function (response) {
                 response = Ext.decode(response.responseText);
                 if (response.success) {
                     loginWin.setLoading(me.msgEnteringInSystem);
@@ -45,14 +45,14 @@ Ext.define('MBilling.view.main.LoginController', {
             }
         });
     },
-    onShowLogin: function() {
+    onShowLogin: function () {
         this.lookupReference('user').focus(false, 10);
     },
-    onSignup: function() {
+    onSignup: function () {
         window.location = window.location.pathname + '#signup';
         window.location.reload();
     },
-    onCreateAccount: function(btn) {
+    onCreateAccount: function (btn) {
         var me = this,
             loginWin = me.getView();
         formPanel = me.lookupReference('signupForm').getForm();
@@ -71,7 +71,7 @@ Ext.define('MBilling.view.main.LoginController', {
             url: 'index.php/signup/add',
             params: values,
             scope: me,
-            success: function(response) {
+            success: function (response) {
                 response = Ext.decode(response.responseText);
                 if (response.success) {
                     Ext.ux.Alert.alert(t('Success'), t(response.msg) + ". <br>" + t('Your username is') + ' ' + response.username, 'success', true, false);
@@ -86,13 +86,13 @@ Ext.define('MBilling.view.main.LoginController', {
                     btn.enable();
                 }
             },
-            failure: function(response) {
+            failure: function (response) {
                 response = Ext.decode(response.responseText);
                 console.log(response);
             }
         });
     },
-    SHA1: function(msg) {
+    SHA1: function (msg) {
         function rotate_left(n, s) {
             var t4 = (n << s) | (n >>> (32 - s));
             return t4;

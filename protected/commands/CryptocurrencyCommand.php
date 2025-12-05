@@ -1,4 +1,5 @@
 <?php
+
 /**
  * =======================================
  * ###################################
@@ -23,14 +24,16 @@ class CryptocurrencyCommand extends CConsoleCommand
     {
 
         $modelMethodPay = Methodpay::model()->find('payment_method = :key', [':key' => 'cryptocurrency']);
-        if ( ! isset($modelMethodPay->id)) {
+        if (! isset($modelMethodPay->id)) {
             echo 'No method found';
             exit;
         }
 
         $last_30_minutes     = time() - 1800;
-        $modelCryptocurrency = Cryptocurrency::model()->findAll('date > :key1 AND status = 1',
-            [':key1' => date('Y-m-d')]);
+        $modelCryptocurrency = Cryptocurrency::model()->findAll(
+            'date > :key1 AND status = 1',
+            [':key1' => date('Y-m-d')]
+        );
 
         foreach ($modelCryptocurrency as $key => $payment) {
             $result = '';
@@ -39,10 +42,10 @@ class CryptocurrencyCommand extends CConsoleCommand
             echo "try get payments\n";
             $command = 'python3.9 /var/www/html/mbilling/protected/commands/crypto.py ' . $modelMethodPay->client_id . ' ' . $modelMethodPay->client_secret . ' ' . $payment->currency . ' ' . $last_30_minutes;
             //Yii::log($command, 'error');
-            exec($command, $result);
-            if ( ! isset($result[0])) {
+            LinuxAccess::exec($command, $result);
+            if (! isset($result[0])) {
                 $command = 'python3 /var/www/html/mbilling/protected/commands/crypto.py ' . $modelMethodPay->client_id . ' ' . $modelMethodPay->client_secret . ' ' . $payment->currency . ' ' . $last_30_minutes;
-                exec($command, $result);
+                LinuxAccess::exec($command, $result);
             }
             Yii::log(print_r($result, true), 'error');
             $result = implode("\n", $result);
@@ -71,10 +74,8 @@ class CryptocurrencyCommand extends CConsoleCommand
                     } else {
                         echo "Receive new deposit in your wallet but not found any refill in your MagnusBilling\n";
                     }
-
                 }
             }
-
         }
     }
 }
