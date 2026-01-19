@@ -29,6 +29,7 @@ get_linux_distribution ()
         HTTP_DIR="/etc/apache2/"
         HTTP_CONFIG=${HTTP_DIR}"apache2.conf"
         MYSQL_CONFIG="/etc/mysql/mariadb.conf.d/50-server.cnf"
+        APACHE_USER="www-data"
     else
         DIST="OTHER"
         echo 'Installation does not support your distribution'
@@ -191,8 +192,6 @@ sed -i "s/max_execution_time = 30/max_execution_time = 90/" ${PHP_INI}
 sed -i "s/max_input_time = 60/max_input_time = 120/" ${PHP_INI}
 sed -i '/date.timezone/s/= .*/= '$phptimezone'/' ${PHP_INI}
 sed -i "s/session.cookie_secure = 1/" ${PHP_INI}
-sed -i 's/User ${APACHE_RUN_USER}/User asterisk/' ${HTTP_CONFIG}
-sed -i 's/Group ${APACHE_RUN_GROUP}/Group asterisk/' ${HTTP_CONFIG}
 sed -i "s/memory_limit = 16M/memory_limit = 512M /" ${PHP_INI}
 sed -i "s/memory_limit = 128M/memory_limit = 512M /" ${PHP_INI}
 sed -i 's/^;*\s*phar.readonly\s*=.*/phar.readonly = On/' ${PHP_INI}
@@ -271,8 +270,8 @@ wget --no-check-certificate https://magnusbilling.org/download/lock-screen-backg
 cd /var/www/html/mbilling/
 rm -rf /var/www/html/mbilling/tmp && mkdir /var/www/html/mbilling/tmp
 mkdir /var/www/html/mbilling/assets
-chown -R asterisk:asterisk /var/www/html/mbilling
 mkdir /var/run/magnus
+mkdir /usr/local/src/magnus
 touch /etc/asterisk/extensions_magnus.conf
 touch /etc/asterisk/extensions_magnus_did.conf
 touch /etc/asterisk/sip_magnus_register.conf
@@ -283,6 +282,7 @@ touch /etc/asterisk/iax_magnus.conf
 touch /etc/asterisk/iax_magnus_user.conf
 touch /etc/asterisk/musiconhold_magnus.conf
 touch /etc/asterisk/queues_magnus.conf
+touch /etc/asterisk/voicemail_magnus.conf
 
 
 selectLanguage() {
@@ -655,7 +655,6 @@ firewall-cmd --zone=public --list-all
 
 
 touch /var/www/html/mbilling/protected/runtime/application.log
-chmod 655 /var/www/html/mbilling/protected/runtime/application.log
 
 
 echo
@@ -766,7 +765,7 @@ bantime = 3600" > /etc/fail2ban/jail.local
 
 rm -rf /var/www/html/mbilling/resources/ip.blacklist
 touch /var/www/html/mbilling/resources/ip.blacklist
-chown -R asterisk:asterisk /var/www/html/mbilling/resources/
+
 
 echo "
 [Definition]
@@ -794,17 +793,103 @@ iptables -L -v
 
 php /var/www/html/mbilling/cron.php updatemysql
 
+## set default permissions 
+
+
+sed -i "s/^User .*/User $APACHE_USER/" $HTTP_CONFIG
+sed -i "s/^Group .*/Group $APACHE_USER/" $HTTP_CONFIG
+
+usermod -aG asterisk $APACHE_USER
+systemctl restart apache2
+
+#permissions
+find /etc/asterisk -name "*magnus*" -exec chown asterisk:asterisk {} \;
+find /etc/asterisk -name "*magnus*" -exec chmod 660 {} \;
+find /etc/asterisk -name "*mbilling*" -exec chown asterisk:asterisk {} \;
+find /etc/asterisk -name "*mbilling*" -exec chmod 660 {} \;
+
+chmod 600 /root/passwordMysql.log
+chown root:asterisk /var/spool/asterisk/outgoing
+chmod 730 /var/spool/asterisk/outgoing
+chown -R root:$APACHE_USER /usr/local/src/magnus
+chmod -R 730 /usr/local/src/magnus
+chown -R root:asterisk /var/lib/asterisk/moh
+chmod -R 730 /var/lib/asterisk/moh
+
 
 chown -R root:root /var/www/html/mbilling
 find /var/www/html/mbilling -type d -exec chmod 755 {} \;
 find /var/www/html/mbilling -type f -exec chmod 644 {} \;
 
 for d in protected/runtime assets tmp resources/reports resources/images; do
-  mkdir -p "/var/www/html/mbilling/$d"
-  chown -R asterisk:asterisk "/var/www/html/mbilling/$d"
+  chown -R $APACHE_USER:$APACHE_USER "/var/www/html/mbilling/$d"
   find "/var/www/html/mbilling/$d" -type d -exec chmod 750 {} \;
   find "/var/www/html/mbilling/$d" -type f -exec chmod 640 {} \;
 done
+
+
+chown -R asterisk:asterisk /var/www/html/mbilling/resources/asterisk
+chmod +x /var/www/html/mbilling/resources/asterisk/mbilling.php
+chmod 500 /var/www/html/mbilling/resources/asterisk
+chmod 500 /var/www/html/mbilling/resources/asterisk/mbilling.php
+
+
+chown -R asterisk:asterisk /var/lib/asterisk
+chown -R asterisk:asterisk /var/log/asterisk
+chown -R asterisk:asterisk /var/spool/asterisk
+chown -R asterisk:asterisk /var/run/asterisk
+
+# end permissions
+
+
+echo '
+[Unit]
+Description=Asterisk PBX (MagnusBilling)
+Documentation=man:asterisk(8)
+After=network.target
+
+[Service]
+Type=simple
+
+User=asterisk
+Group=asterisk
+
+Environment=AST_USER=asterisk
+Environment=AST_GROUP=asterisk
+Environment=HOME=/var/lib/asterisk
+WorkingDirectory=/var/lib/asterisk
+
+ExecStart=/usr/sbin/asterisk -f -U asterisk -G asterisk -C /etc/asterisk/asterisk.conf
+ExecStop=/usr/sbin/asterisk -rx "core stop now"
+ExecReload=/usr/sbin/asterisk -rx "core reload"
+
+Restart=always
+RestartSec=4
+
+LimitNOFILE=500000
+LimitNPROC=500000
+LimitCORE=infinity
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+RuntimeDirectory=asterisk
+RuntimeDirectoryMode=0750
+ReadWritePaths=/var/lib/asterisk /var/spool/asterisk /var/log/asterisk
+
+SyslogIdentifier=asterisk
+
+[Install]
+WantedBy=multi-user.target
+
+' > /etc/systemd/system/asterisk.service
+
+
+systemctl disable asterisk 2>/dev/null
+systemctl daemon-reload
+systemctl enable asterisk
+systemctl restart asterisk
 
 for d in assets tmp protected/runtime resources/reports resources/images; do
   cat > "/var/www/html/mbilling/$d/.htaccess" <<'EOF'
@@ -822,18 +907,6 @@ EOF
 done
 chmod +x /var/www/html/mbilling/protected/commands/*.sh
 
-chown -R asterisk:asterisk /var/lib/php/session*
-chown -R asterisk:asterisk /var/spool/asterisk/outgoing/
-chown -R asterisk:asterisk /etc/asterisk
-mkdir -p /usr/local/src/magnus/monitor
-mkdir -p /usr/local/src/magnus/sounds
-mkdir -p /usr/local/src/magnus/backup
-mv /usr/local/src/backup* /usr/local/src/magnus/backup
-chown -R asterisk:asterisk /usr/local/src/magnus/
-chmod -R 755 /usr/local/src/magnus/
-chmod +x /var/www/html/mbilling/resources/asterisk/mbilling.php
-chmod -R 100 /var/www/html/mbilling/resources/asterisk/
-chown -R asterisk:asterisk /var/lib/asterisk/moh/
 echo
 echo
 echo ===============================================================

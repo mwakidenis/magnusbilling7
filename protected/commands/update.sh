@@ -32,12 +32,14 @@ get_linux_distribution ()
         HTTP_CONFIG=${HTTP_DIR}"apache2.conf"
         MYSQL_CONFIG="/etc/mysql/mariadb.conf.d/50-server.cnf"
         SERVICE='apache2'
+        APACHE_USER="www-data"
     elif [ -f /etc/redhat-release ]; then
         DIST="CENTOS"
         HTTP_DIR="/etc/httpd/"
         HTTP_CONFIG=${HTTP_DIR}"conf/httpd.conf"
         MYSQL_CONFIG="/etc/my.cnf"
-         SERVICE='httpd'
+        SERVICE='httpd'
+        APACHE_USER="apache"
     else
         DIST="OTHER"
         echo 'Installation does not support your distribution'
@@ -60,18 +62,111 @@ tar xzf MagnusBilling-current.tar.gz
 rm -rf /var/www/html/mbilling/doc
 rm -rf /var/www/html/mbilling/script
 rm -rf /var/www/html/mbilling/assets/*
+touch /etc/asterisk/voicemail_magnus.conf
+
 ## set default permissions 
+
+
+sed -i "s/^User .*/User $APACHE_USER/" $HTTP_CONFIG
+sed -i "s/^Group .*/Group $APACHE_USER/" $HTTP_CONFIG
+
+usermod -aG asterisk $APACHE_USER
+systemctl restart $SERVICE
+
+#permissions
+find /etc/asterisk -name "*magnus*" -exec chown asterisk:asterisk {} \;
+find /etc/asterisk -name "*magnus*" -exec chmod 660 {} \;
+find /etc/asterisk -name "*mbilling*" -exec chown asterisk:asterisk {} \;
+find /etc/asterisk -name "*mbilling*" -exec chmod 660 {} \;
+
+chmod 600 /root/passwordMysql.log
+chown root:asterisk /var/spool/asterisk/outgoing
+chmod 730 /var/spool/asterisk/outgoing
+chown -R asterisk:asterisk /usr/local/src/magnus
+chmod -R 730 /usr/local/src/magnus
+chown -R root:asterisk /var/lib/asterisk/moh
+chmod -R 730 /var/lib/asterisk/moh
+
 
 chown -R root:root /var/www/html/mbilling
 find /var/www/html/mbilling -type d -exec chmod 755 {} \;
 find /var/www/html/mbilling -type f -exec chmod 644 {} \;
 
 for d in protected/runtime assets tmp resources/reports resources/images; do
-  mkdir -p "/var/www/html/mbilling/$d"
-  chown -R asterisk:asterisk "/var/www/html/mbilling/$d"
+  chown -R $APACHE_USER:$APACHE_USER "/var/www/html/mbilling/$d"
   find "/var/www/html/mbilling/$d" -type d -exec chmod 750 {} \;
   find "/var/www/html/mbilling/$d" -type f -exec chmod 640 {} \;
 done
+
+
+chown -R asterisk:asterisk /var/www/html/mbilling/resources/asterisk
+chmod +x /var/www/html/mbilling/resources/asterisk/mbilling.php
+chmod 500 /var/www/html/mbilling/resources/asterisk
+chmod 500 /var/www/html/mbilling/resources/asterisk/mbilling.php
+chown -R $APACHE_USER:$APACHE_USER /var/lib/php/session*
+
+chown -R asterisk:asterisk /var/lib/asterisk
+chown -R asterisk:asterisk /var/log/asterisk
+chown -R asterisk:asterisk /var/spool/asterisk
+chown -R asterisk:asterisk /var/run/asterisk
+
+chmod +x /var/www/html/mbilling/protected/commands/*.sh
+
+# end permissions
+
+SERVICE_FILE="/etc/systemd/system/asterisk.service"
+
+if [ ! -f "$SERVICE_FILE" ]; then
+cat <<'EOF' > "$SERVICE_FILE"
+[Unit]
+Description=Asterisk PBX (MagnusBilling)
+Documentation=man:asterisk(8)
+After=network.target
+
+[Service]
+Type=simple
+
+User=asterisk
+Group=asterisk
+
+Environment=AST_USER=asterisk
+Environment=AST_GROUP=asterisk
+Environment=HOME=/var/lib/asterisk
+WorkingDirectory=/var/lib/asterisk
+
+ExecStart=/usr/sbin/asterisk -f -U asterisk -G asterisk -C /etc/asterisk/asterisk.conf
+ExecStop=/usr/sbin/asterisk -rx "core stop now"
+ExecReload=/usr/sbin/asterisk -rx "core reload"
+
+Restart=always
+RestartSec=4
+
+LimitNOFILE=500000
+LimitNPROC=500000
+LimitCORE=infinity
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+RuntimeDirectory=asterisk
+RuntimeDirectoryMode=0750
+ReadWritePaths=/var/lib/asterisk /var/spool/asterisk /var/log/asterisk
+
+SyslogIdentifier=asterisk
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl disable asterisk 2>/dev/null
+systemctl daemon-reload
+systemctl enable asterisk
+
+fi
+
+
+
 
 for d in assets tmp protected/runtime resources/reports resources/images; do
   cat > "/var/www/html/mbilling/$d/.htaccess" <<'EOF'
@@ -87,21 +182,6 @@ for d in assets tmp protected/runtime resources/reports resources/images; do
 </IfModule>
 EOF
 done
-
-chmod +x /var/www/html/mbilling/protected/commands/*.sh
-chmod +x /var/www/html/mbilling/protected/commands/clear_memory
-touch /etc/asterisk/extensions_magnus_did.conf
-chown -R asterisk:asterisk /var/lib/php/session*
-chown -R asterisk:asterisk /var/spool/asterisk/outgoing/
-chown -R asterisk:asterisk /etc/asterisk
-chown -R asterisk:asterisk /var/lib/asterisk/moh/
-chown -R asterisk:asterisk /var/lib/asterisk/sounds/
-mkdir -p /usr/local/src/magnus
-chown -R asterisk:asterisk /var/run/magnus/
-chown -R root:root /root
-chown -R mysql:mysql /var/lib/mysql
-chmod -R 755 /usr/local/src/magnus
-
 
 echo 'Options -Indexes
 Order Deny,Allow
@@ -121,9 +201,6 @@ sed -i.bak -E "s/^[[:space:]]*secure[-_]file[-_]priv[[:space:]]*=[[:space:]]*.*$
 mkdir /var/lib/mysql-files
 chown root:root /var/lib/mysql-files
 chmod 755 /var/lib/mysql-files
-
-
-/var/www/html/mbilling/protected/commands/clear_memory
 
 rm -rf /var/www/html/mbilling/protected/controllers/Transfer*
 rm -rf /var/www/html/mbilling/protected/controllers/SendCredit*

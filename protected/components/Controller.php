@@ -56,8 +56,6 @@ class Controller extends BaseController
             'clicToCall',
             'efi',
             'joomla',
-            'mBillingSoftphone',
-            'moip',
             'pagSeguro',
             'paypal',
             'placetoPay',

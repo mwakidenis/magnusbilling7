@@ -6,6 +6,22 @@ class HttpRequest extends CHttpRequest
 
     public function validateCsrfToken($event)
     {
+
+        $file = Yii::getPathOfAlias('application.config') . '/noCsrfValidation.php';
+        if (is_file($file)) {
+            $route = $this->getPathInfo();
+            $controller = strtolower(strtok($route, '/'));
+
+            $noCsrf = require $file;
+
+            if (is_array($noCsrf)) {
+                foreach ($noCsrf as $c) {
+                    if (strcasecmp($controller, $c) === 0) {
+                        return;
+                    }
+                }
+            }
+        }
         // Só faz essa validação especial em POST
         if ($this->getIsPostRequest() && !empty($_SERVER['HTTP_KEY'])) {
 
