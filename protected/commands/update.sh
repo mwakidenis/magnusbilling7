@@ -82,10 +82,10 @@ find /etc/asterisk -name "*mbilling*" -exec chmod 660 {} \;
 chmod 600 /root/passwordMysql.log
 chown root:asterisk /var/spool/asterisk/outgoing
 chmod 730 /var/spool/asterisk/outgoing
-chown -R asterisk:asterisk /usr/local/src/magnus
-chmod -R 730 /usr/local/src/magnus
+chown -R root:asterisk /usr/local/src/magnus
+chmod -R 775 /usr/local/src/magnus
 chown -R root:asterisk /var/lib/asterisk/moh
-chmod -R 730 /var/lib/asterisk/moh
+chmod -R 775 /var/lib/asterisk/moh
 
 
 chown -R root:root /var/www/html/mbilling

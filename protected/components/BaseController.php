@@ -85,6 +85,11 @@ class BaseController extends CController
     public function init()
     {
 
+        /*file_put_contents(
+            Yii::getPathOfAlias('application.runtime') . '/teste.log',
+            date('Y-m-d H:i:s') . ' - ' . $_SERVER['REMOTE_ADDR'] . ' ' . Yii::app()->controller->id . ' ' . print_r($_REQUEST, true) .   "\n",
+            FILE_APPEND
+        );*/
 
         $modelLogUsers = LogUsers::model()->count(
             'ip = :key1 AND description LIKE :key2',
